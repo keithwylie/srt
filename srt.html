@@ -446,9 +446,9 @@
       <div class="r-unit">milliseconds</div>
     </div>
     <div class="result-card highlight">
-      <div class="r-label">RT Spike</div>
+      <div class="r-label">RT Spike at Transition</div>
       <div class="r-val" id="res-spike">—</div>
-      <div class="r-unit">ms slower when pattern broke</div>
+      <div class="r-unit">ms — last 5 practiced vs. first 5 random trials</div>
     </div>
     <div class="result-card">
       <div class="r-label">Accuracy</div>
@@ -459,6 +459,15 @@
 
   <div class="insight-box" id="insight-text">
     Calculating your results...
+  </div>
+
+  <div id="chart-section" style="width:100%; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px;">
+    <div style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:14px; font-family:'Space Mono',monospace;">Reaction time per trial (ms)</div>
+    <canvas id="results-chart" style="width:100%; height:160px; display:block;"></canvas>
+    <div style="display:flex; gap:16px; margin-top:10px; font-size:12px; color:var(--muted);">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent);margin-right:5px;vertical-align:middle;"></span>Block 1</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent2);margin-right:5px;vertical-align:middle;"></span>Block 2</span>
+    </div>
   </div>
 
   <div style="display:flex; gap:10px; margin-bottom:16px;">
@@ -716,14 +725,12 @@ function endTask() {
   const avgSeq = seqRTs.length ? Math.round(seqRTs.reduce((a,b)=>a+b,0)/seqRTs.length) : 0;
   const avgRand = randRTs.length ? Math.round(randRTs.reduce((a,b)=>a+b,0)/randRTs.length) : 0;
 
-  // RT at transition: first 5 random trials
-  const firstRandRTs = trialData.filter(d => d.correct && d.phase === 'rand').slice(0,5).map(d=>d.rt);
-  // Last 5 sequential trials
-  const lastSeqRTs = trialData.filter(d => d.correct && d.phase === 'seq').slice(-5).map(d=>d.rt);
-
-  const spikeEnd = lastSeqRTs.length ? Math.round(lastSeqRTs.reduce((a,b)=>a+b,0)/lastSeqRTs.length) : avgSeq;
-  const spikeStart = firstRandRTs.length ? Math.round(firstRandRTs.reduce((a,b)=>a+b,0)/firstRandRTs.length) : avgRand;
-  const spike = Math.max(0, spikeStart - spikeEnd);
+  // Spike: last 5 practiced trials vs. first 5 random trials — the transition window
+  const lastSeqRTs = trialData.filter(d => d.correct && d.phase === 'seq').slice(-5).map(d => d.rt);
+  const firstRandRTs = trialData.filter(d => d.correct && d.phase === 'rand').slice(0, 5).map(d => d.rt);
+  const avgLastSeq = lastSeqRTs.length ? Math.round(lastSeqRTs.reduce((a,b)=>a+b,0)/lastSeqRTs.length) : avgSeq;
+  const avgFirstRand = firstRandRTs.length ? Math.round(firstRandRTs.reduce((a,b)=>a+b,0)/firstRandRTs.length) : avgRand;
+  const spike = Math.max(0, avgFirstRand - avgLastSeq);
 
   const acc = Math.round(trialData.filter(d=>d.correct).length / trialData.length * 100);
 
@@ -732,20 +739,89 @@ function endTask() {
   document.getElementById('res-spike').textContent = '+' + spike;
   document.getElementById('res-acc').textContent = acc + '%';
 
-  // Insight
   let insight = '';
   if (spike > 60) {
-    insight = `Your reaction time jumped by about <strong>${spike}ms</strong> when the repeating pattern broke. That spike is the key finding: your brain had learned the sequence — even if you weren't aware of it — and the random trials disrupted that learned prediction. This is implicit learning in your own data.`;
-  } else if (avgRand > avgSeq) {
-    insight = `Your average RT was faster during the sequential block (${avgSeq}ms) than the random block (${avgRand}ms). This difference — even a small one — reflects implicit sequence learning: your brain anticipated the next location, shaving milliseconds off your response time without conscious strategy.`;
+    insight = `When the pattern broke, your RT jumped by <strong>${spike}ms</strong> — from ${avgLastSeq}ms (your last 5 practiced trials) to ${avgFirstRand}ms (your first 5 random trials). That spike is the key finding: your brain had learned the sequence implicitly and was disrupted the moment it disappeared.`;
+  } else if (spike > 0) {
+    insight = `When the pattern broke, your RT rose by ${spike}ms at the transition (${avgLastSeq}ms → ${avgFirstRand}ms). Even a small bump reflects implicit learning: your brain was predicting the next location, and losing that prediction cost you milliseconds.`;
   } else {
-    insight = `Interesting results. Even without a large RT difference, notice whether you felt a change in fluency or difficulty when the pattern changed. Implicit learning effects can be subtle — and are sometimes clearer when averaged across a full class than for a single participant.`;
+    insight = `Your RT at the transition was similar in both blocks. Implicit learning effects can be subtle for individual participants — look at the chart to see whether your red dots start higher before settling. The effect is often clearer when averaged across a full class.`;
   }
 
   document.getElementById('insight-text').innerHTML = insight;
+  drawResultsChart();
 }
 
-function showDebriefQuestions() {
+function drawResultsChart() {
+  const canvas = document.getElementById('results-chart');
+  const W = canvas.offsetWidth || 600;
+  const H = 160;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  const data = trialData.filter(d => d.correct);
+  if (data.length < 2) return;
+
+  const rts = data.map(d => d.rt);
+  const minRT = Math.max(0, Math.min(...rts) - 50);
+  const maxRT = Math.max(...rts) + 50;
+  const pad = { top: 10, bottom: 24, left: 10, right: 10 };
+
+  function xOf(i) { return pad.left + (i / (totalTrials - 1)) * (W - pad.left - pad.right); }
+  function yOf(rt) { return pad.top + (1 - (rt - minRT) / (maxRT - minRT)) * (H - pad.top - pad.bottom); }
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(46,51,80,0.5)';
+  ctx.lineWidth = 1;
+  for (let g = 0; g <= 3; g++) {
+    const y = pad.top + g * (H - pad.top - pad.bottom) / 3;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+  }
+
+  let seqPts = [], randPts = [];
+  data.forEach(d => {
+    const x = xOf(d.trial - 1);
+    const y = yOf(d.rt);
+    if (d.phase === 'seq') seqPts.push([x, y]);
+    else randPts.push([x, y]);
+  });
+
+  function drawLine(pts, color) {
+    if (pts.length < 2) return;
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    pts.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
+    ctx.stroke();
+    pts.forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+  }
+
+  drawLine(seqPts, '#5b7fff');
+  drawLine(randPts, '#ff6b6b');
+
+  // Transition marker
+  const transIdx = allTrialSequence.findIndex(t => t.phase === 'rand');
+  if (transIdx > 0) {
+    const x = xOf(transIdx);
+    ctx.strokeStyle = 'rgba(255,107,107,0.5)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, H - pad.bottom); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,107,107,0.7)';
+    ctx.font = '10px Space Mono, monospace';
+    ctx.fillText('↑ Block 2', x + 4, H - pad.bottom - 4);
+  }
+}
   const d = document.getElementById('debrief-questions');
   d.style.display = d.style.display === 'none' ? 'block' : 'none';
 }
