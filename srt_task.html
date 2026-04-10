@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serial Reaction Time Task — Ch. 8 Skill Memory</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #5b7fff;
+    --accent2: #ff6b6b;
+    --text: #e8eaf0;
+    --muted: #6b7094;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --box-size: 140px;
+    --gap: 20px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem 1rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .chapter-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* Phase banner */
+  #phase-banner {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+    transition: all 0.4s;
+  }
+
+  #phase-banner.sequential { color: var(--accent); border-color: var(--accent); }
+  #phase-banner.random { color: var(--accent2); border-color: var(--accent2); }
+
+  /* Trial counter */
+  #trial-info {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* The 4 boxes */
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(4, var(--box-size));
+    gap: var(--gap);
+    margin-bottom: 2rem;
+  }
+
+  .box {
+    width: var(--box-size);
+    height: var(--box-size);
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    cursor: default;
+    transition: background 0.08s, border-color 0.08s, transform 0.08s;
+    position: relative;
+    user-select: none;
+  }
+
+  .box .key-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--muted);
+    transition: color 0.08s;
+  }
+
+  .box .pos-label {
+    font-size: 10px;
+    color: var(--muted);
+    opacity: 0.5;
+    margin-top: 4px;
+  }
+
+  .box.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.04);
+  }
+
+  .box.active .key-label { color: #fff; }
+
+  .box.correct-press {
+    background: var(--green);
+    border-color: var(--green);
+    transform: scale(0.97);
+  }
+
+  .box.wrong-press {
+    background: var(--accent2);
+    border-color: var(--accent2);
+  }
+
+  /* RT display */
+  #rt-display {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    min-height: 20px;
+    text-align: center;
+  }
+
+  /* Stats bar */
+  #stats-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: min(600px, 100%);
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* RT chart */
+  #chart-section {
+    width: min(640px, 100%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 2rem;
+  }
+
+  .chart-title {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 14px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  canvas#rt-chart {
+    width: 100%;
+    height: 160px;
+    display: block;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  /* Screens */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: min(560px, 100%);
+  }
+
+  .screen.active { display: flex; }
+
+  .screen h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .screen p {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  .screen .hint {
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn:active { transform: scale(0.97); }
+  .btn.secondary {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    margin-left: 10px;
+  }
+
+  /* Results screen */
+  #results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .result-card.highlight { border-color: var(--accent); }
+  .result-card .r-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .result-card .r-val { font-family: 'Space Mono', monospace; font-size: 28px; font-weight: 700; }
+  .result-card .r-unit { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .insight-box {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 16px;
+    width: 100%;
+  }
+
+  /* Transition alert */
+  #transition-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  #transition-overlay.show { display: flex; }
+
+  #transition-overlay h2 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--accent2);
+  }
+
+  #transition-overlay p {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 420px;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  /* Instructor controls */
+  #instructor-controls {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    z-index: 50;
+  }
+
+  #instructor-controls:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- Intro screen -->
+<div id="screen-intro" class="screen active">
+  <div class="chapter-tag">Chapter 8 — Skill Memory</div>
+  <h1 style="margin-bottom:16px;">Serial Reaction Time Task</h1>
+  <div class="hint">
+    <strong>How to play:</strong> Four boxes will appear. When one <strong>lights up blue</strong>, press the matching key as fast as you can:<br><br>
+    <span style="font-family:'Space Mono',monospace; font-size:16px; color:var(--text);">
+      <strong>F</strong> &nbsp;&nbsp; <strong>G</strong> &nbsp;&nbsp; <strong>H</strong> &nbsp;&nbsp; <strong>J</strong>
+    </span><br><br>
+    Press the correct key the moment the box lights up. Go as fast as you can without making mistakes.
+  </div>
+  <p>You'll complete <strong>~96 trials</strong>. Stay focused — something interesting might happen along the way.</p>
+  <button class="btn" onclick="startTask()">Start Task</button>
+</div>
+
+<!-- Game screen -->
+<div id="screen-game" class="screen">
+  <div class="chapter-tag">Ch. 8 — Skill Memory</div>
+  <div id="phase-banner">Warming up...</div>
+  <div id="trial-info">Trial — / —</div>
+
+  <div id="grid">
+    <div class="box" id="box-0"><span class="key-label">F</span><span class="pos-label">1</span></div>
+    <div class="box" id="box-1"><span class="key-label">G</span><span class="pos-label">2</span></div>
+    <div class="box" id="box-2"><span class="key-label">H</span><span class="pos-label">3</span></div>
+    <div class="box" id="box-3"><span class="key-label">J</span><span class="pos-label">4</span></div>
+  </div>
+
+  <div id="rt-display">Press a key to respond</div>
+
+  <div id="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">Last RT</div>
+      <div class="stat-value" id="stat-last">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg RT</div>
+      <div class="stat-value" id="stat-avg">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value" id="stat-acc">—</div>
+    </div>
+  </div>
+
+  <div id="chart-section">
+    <div class="chart-title">Reaction time per trial (ms)</div>
+    <canvas id="rt-chart" width="600" height="160"></canvas>
+    <div class="chart-legend">
+      <span><span class="legend-dot" style="background:var(--accent);"></span>Sequential</span>
+      <span><span class="legend-dot" style="background:var(--accent2);"></span>Random</span>
+    </div>
+  </div>
+</div>
+
+<!-- Results screen -->
+<div id="screen-results" class="screen">
+  <div class="chapter-tag">Ch. 8 — Skill Memory</div>
+  <h2 style="margin-bottom:20px;">Your Results</h2>
+
+  <div id="results-grid">
+    <div class="result-card highlight">
+      <div class="r-label">Avg RT — Sequential</div>
+      <div class="r-val" id="res-seq">—</div>
+      <div class="r-unit">milliseconds</div>
+    </div>
+    <div class="result-card">
+      <div class="r-label">Avg RT — Random</div>
+      <div class="r-val" id="res-rand">—</div>
+      <div class="r-unit">milliseconds</div>
+    </div>
+    <div class="result-card highlight">
+      <div class="r-label">RT Spike at Transition</div>
+      <div class="r-val" id="res-spike">—</div>
+      <div class="r-unit">ms — last 5 practiced vs. first 5 random trials</div>
+    </div>
+    <div class="result-card">
+      <div class="r-label">Accuracy</div>
+      <div class="r-val" id="res-acc">—</div>
+      <div class="r-unit">% correct</div>
+    </div>
+  </div>
+
+  <div class="insight-box" id="insight-text">
+    Calculating your results...
+  </div>
+
+  <div id="chart-section" style="width:100%; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px;">
+    <div style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:14px; font-family:'Space Mono',monospace;">Reaction time per trial (ms)</div>
+    <canvas id="results-chart" style="width:100%; height:160px; display:block;"></canvas>
+    <div style="display:flex; gap:16px; margin-top:10px; font-size:12px; color:var(--muted);">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent);margin-right:5px;vertical-align:middle;"></span>Block 1</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent2);margin-right:5px;vertical-align:middle;"></span>Block 2</span>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:10px; margin-bottom:16px;">
+    <button class="btn" onclick="restartTask()">Try Again</button>
+    <button class="btn secondary" onclick="showDebriefQuestions()">Debrief Questions ↓</button>
+  </div>
+
+  <div id="debrief-questions" style="display:none; width:100%; text-align:left;">
+    <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:8px;">
+      <p style="font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; font-family:'Space Mono',monospace; margin-bottom:14px;">Discussion Questions</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="result-card" style="text-align:left;padding:14px;">
+          <div style="font-size:13px; line-height:1.7; color:var(--text);">1. Did you notice a repeating pattern during the task? If so, when did you notice it?</div>
+        </div>
+        <div class="result-card" style="text-align:left;padding:14px;">
+          <div style="font-size:13px; line-height:1.7; color:var(--text);">2. Your RT data showed you learned something even if you weren't conscious of it. What does this suggest about the nature of skill memory?</div>
+        </div>
+        <div class="result-card" style="text-align:left;padding:14px;">
+          <div style="font-size:13px; line-height:1.7; color:var(--text);">3. When the pattern broke and switched to random, what happened to your speed? What does that spike tell us?</div>
+        </div>
+        <div class="result-card" style="text-align:left;padding:14px;">
+          <div style="font-size:13px; line-height:1.7; color:var(--text);">4. How is what you just experienced different from the kind of learning that happened when you studied for a test?</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transition overlay -->
+<div id="transition-overlay">
+  <h2>Block 1 Complete</h2>
+  <p>Block 2 is about to begin. Keep responding as fast and accurately as you can.</p>
+  <button class="btn" onclick="continueAfterTransition()">Continue →</button>
+</div>
+
+<!-- Instructor shortcut hint -->
+<div id="instructor-controls" onclick="skipToResults()" title="Instructor: skip to results">⚡ Skip to results</div>
+
+<script>
+// === Configuration ===
+const KEYS = ['f', 'g', 'h', 'j'];
+const BOX_IDS = [0, 1, 2, 3];
+// Secret repeating sequence (12-element, indices 0-3)
+const SEQUENCE = [0, 2, 1, 3, 2, 0, 3, 1, 2, 3, 0, 1];
+const N_SEQ_REPS = 4;       // how many times to repeat the full sequence (= 48 trials)
+const N_RANDOM = N_SEQ_REPS * SEQUENCE.length;  // same length as sequential block (48)
+const ISI = 250;            // inter-stimulus interval (ms)
+
+// === State ===
+let phase = 'idle';
+let currentTrial = 0;
+let totalTrials = 0;
+let trialData = [];
+let currentTarget = -1;
+let stimOnset = 0;
+let waitingForResponse = false;
+let allTrialSequence = [];  // 'seq' or 'rand' for each trial
+let seqPosition = 0;
+let transitionShown = false;
+
+// Build full trial list
+function buildTrialList() {
+  allTrialSequence = [];
+  // Sequential block: N_SEQ_REPS repetitions of the 12-item sequence
+  for (let r = 0; r < N_SEQ_REPS; r++) {
+    for (let i = 0; i < SEQUENCE.length; i++) {
+      allTrialSequence.push({ phase: 'seq', target: SEQUENCE[i] });
+    }
+  }
+  // Random block
+  for (let i = 0; i < N_RANDOM; i++) {
+    allTrialSequence.push({ phase: 'rand', target: Math.floor(Math.random() * 4) });
+  }
+  totalTrials = allTrialSequence.length;
+}
+
+function startTask() {
+  document.getElementById('screen-intro').classList.remove('active');
+  document.getElementById('screen-game').classList.add('active');
+  buildTrialList();
+  currentTrial = 0;
+  trialData = [];
+  transitionShown = false;
+  phase = 'running';
+  updateStats();
+  updateChart();
+  setTimeout(showNextTrial, 600);
+}
+
+function showNextTrial() {
+  if (currentTrial >= totalTrials) {
+    endTask();
+    return;
+  }
+  const t = allTrialSequence[currentTrial];
+
+  // Show transition overlay when switching to random (only once)
+  if (!transitionShown && t.phase === 'rand' && currentTrial > 0 && allTrialSequence[currentTrial - 1].phase === 'seq') {
+    transitionShown = true;
+    document.getElementById('transition-overlay').classList.add('show');
+    return;
+  }
+
+  // Update phase banner
+  const banner = document.getElementById('phase-banner');
+  banner.className = '';
+  if (t.phase === 'seq') {
+    banner.textContent = 'Block 1';
+    banner.classList.add('sequential');
+  } else {
+    banner.textContent = 'Block 2';
+    banner.classList.add('random');
+  }
+
+  document.getElementById('trial-info').textContent =
+    `Trial ${currentTrial + 1} / ${totalTrials}`;
+
+  currentTarget = t.target;
+  const box = document.getElementById('box-' + currentTarget);
+  box.classList.add('active');
+  stimOnset = performance.now();
+  waitingForResponse = true;
+}
+
+function continueAfterTransition() {
+  document.getElementById('transition-overlay').classList.remove('show');
+  showNextTrial();
+}
+
+document.addEventListener('keydown', (e) => {
+  const key = e.key.toLowerCase();
+  const idx = KEYS.indexOf(key);
+  if (idx === -1 || !waitingForResponse) return;
+  e.preventDefault();
+
+  const rt = Math.round(performance.now() - stimOnset);
+  const correct = idx === currentTarget;
+  waitingForResponse = false;
+
+  const box = document.getElementById('box-' + currentTarget);
+  box.classList.remove('active');
+  box.classList.add(correct ? 'correct-press' : 'wrong-press');
+
+  const phase_label = allTrialSequence[currentTrial].phase;
+  trialData.push({ trial: currentTrial + 1, rt, correct, phase: phase_label });
+
+  const rtText = document.getElementById('rt-display');
+  rtText.textContent = correct ? `${rt} ms` : `Wrong key — ${rt} ms`;
+  rtText.style.color = correct ? 'var(--green)' : 'var(--accent2)';
+
+  updateStats();
+  updateChart();
+
+  setTimeout(() => {
+    box.classList.remove('correct-press', 'wrong-press');
+    currentTrial++;
+    setTimeout(showNextTrial, ISI);
+  }, 120);
+});
+
+function updateStats() {
+  const allRTs = trialData.filter(d => d.correct).map(d => d.rt);
+  const last = allRTs.length ? allRTs[allRTs.length - 1] : null;
+  const avg = allRTs.length ? Math.round(allRTs.reduce((a, b) => a + b, 0) / allRTs.length) : null;
+  const acc = trialData.length ? Math.round(trialData.filter(d => d.correct).length / trialData.length * 100) : null;
+
+  document.getElementById('stat-last').textContent = last !== null ? last + 'ms' : '—';
+  document.getElementById('stat-avg').textContent = avg !== null ? avg + 'ms' : '—';
+  document.getElementById('stat-acc').textContent = acc !== null ? acc + '%' : '—';
+}
+
+function updateChart() {
+  const canvas = document.getElementById('rt-chart');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth;
+  const H = canvas.offsetHeight;
+  canvas.width = W;
+  canvas.height = H;
+
+  ctx.clearRect(0, 0, W, H);
+
+  const data = trialData.filter(d => d.correct);
+  if (data.length < 2) return;
+
+  const rts = data.map(d => d.rt);
+  const minRT = Math.max(0, Math.min(...rts) - 50);
+  const maxRT = Math.max(...rts) + 50;
+  const pad = { top: 10, bottom: 24, left: 10, right: 10 };
+
+  function xOf(i) { return pad.left + (i / (totalTrials - 1)) * (W - pad.left - pad.right); }
+  function yOf(rt) { return pad.top + (1 - (rt - minRT) / (maxRT - minRT)) * (H - pad.top - pad.bottom); }
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(46,51,80,0.8)';
+  ctx.lineWidth = 1;
+  for (let g = 0; g <= 3; g++) {
+    const y = pad.top + g * (H - pad.top - pad.bottom) / 3;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+  }
+
+  // Draw lines by phase
+  let seqPts = [];
+  let randPts = [];
+
+  data.forEach((d, i) => {
+    const trialIdx = d.trial - 1;
+    const x = xOf(trialIdx);
+    const y = yOf(d.rt);
+    if (d.phase === 'seq') seqPts.push([x, y]);
+    else randPts.push([x, y]);
+  });
+
+  function drawLine(pts, color) {
+    if (pts.length < 2) return;
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    pts.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
+    ctx.stroke();
+    pts.forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+  }
+
+  drawLine(seqPts, '#5b7fff');
+  drawLine(randPts, '#ff6b6b');
+
+  // Transition marker line
+  const transTrialIdx = allTrialSequence.findIndex(t => t.phase === 'rand');
+  if (transTrialIdx > 0 && transTrialIdx < totalTrials) {
+    const x = xOf(transTrialIdx);
+    ctx.strokeStyle = 'rgba(255,107,107,0.5)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, H - pad.bottom); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,107,107,0.7)';
+    ctx.font = '10px Space Mono, monospace';
+    ctx.fillText('↑ random', x + 4, H - pad.bottom - 4);
+  }
+}
+
+function endTask() {
+  document.getElementById('screen-game').classList.remove('active');
+  document.getElementById('screen-results').classList.add('active');
+
+  const seqRTs = trialData.filter(d => d.correct && d.phase === 'seq').map(d => d.rt);
+  const randRTs = trialData.filter(d => d.correct && d.phase === 'rand').map(d => d.rt);
+
+  const avgSeq = seqRTs.length ? Math.round(seqRTs.reduce((a,b)=>a+b,0)/seqRTs.length) : 0;
+  const avgRand = randRTs.length ? Math.round(randRTs.reduce((a,b)=>a+b,0)/randRTs.length) : 0;
+
+  // Spike: last 5 practiced trials vs. first 5 random trials — the transition window
+  const lastSeqRTs = trialData.filter(d => d.correct && d.phase === 'seq').slice(-5).map(d => d.rt);
+  const firstRandRTs = trialData.filter(d => d.correct && d.phase === 'rand').slice(0, 5).map(d => d.rt);
+  const avgLastSeq = lastSeqRTs.length ? Math.round(lastSeqRTs.reduce((a,b)=>a+b,0)/lastSeqRTs.length) : avgSeq;
+  const avgFirstRand = firstRandRTs.length ? Math.round(firstRandRTs.reduce((a,b)=>a+b,0)/firstRandRTs.length) : avgRand;
+  const spike = Math.max(0, avgFirstRand - avgLastSeq);
+
+  const acc = Math.round(trialData.filter(d=>d.correct).length / trialData.length * 100);
+
+  document.getElementById('res-seq').textContent = avgSeq + 'ms';
+  document.getElementById('res-rand').textContent = avgRand + 'ms';
+  document.getElementById('res-spike').textContent = '+' + spike;
+  document.getElementById('res-acc').textContent = acc + '%';
+
+  let insight = '';
+  if (spike > 60) {
+    insight = `When the pattern broke, your RT jumped by <strong>${spike}ms</strong> — from ${avgLastSeq}ms (your last 5 practiced trials) to ${avgFirstRand}ms (your first 5 random trials). That spike is the key finding: your brain had learned the sequence implicitly and was disrupted the moment it disappeared.`;
+  } else if (spike > 0) {
+    insight = `When the pattern broke, your RT rose by ${spike}ms at the transition (${avgLastSeq}ms → ${avgFirstRand}ms). Even a small bump reflects implicit learning: your brain was predicting the next location, and losing that prediction cost you milliseconds.`;
+  } else {
+    insight = `Your RT at the transition was similar in both blocks. Implicit learning effects can be subtle for individual participants — look at the chart to see whether your red dots start higher before settling. The effect is often clearer when averaged across a full class.`;
+  }
+
+  document.getElementById('insight-text').innerHTML = insight;
+  drawResultsChart();
+}
+
+function drawResultsChart() {
+  const canvas = document.getElementById('results-chart');
+  const W = canvas.offsetWidth || 600;
+  const H = 160;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  const data = trialData.filter(d => d.correct);
+  if (data.length < 2) return;
+
+  const rts = data.map(d => d.rt);
+  const minRT = Math.max(0, Math.min(...rts) - 50);
+  const maxRT = Math.max(...rts) + 50;
+  const pad = { top: 10, bottom: 24, left: 10, right: 10 };
+
+  function xOf(i) { return pad.left + (i / (totalTrials - 1)) * (W - pad.left - pad.right); }
+  function yOf(rt) { return pad.top + (1 - (rt - minRT) / (maxRT - minRT)) * (H - pad.top - pad.bottom); }
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(46,51,80,0.5)';
+  ctx.lineWidth = 1;
+  for (let g = 0; g <= 3; g++) {
+    const y = pad.top + g * (H - pad.top - pad.bottom) / 3;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+  }
+
+  let seqPts = [], randPts = [];
+  data.forEach(d => {
+    const x = xOf(d.trial - 1);
+    const y = yOf(d.rt);
+    if (d.phase === 'seq') seqPts.push([x, y]);
+    else randPts.push([x, y]);
+  });
+
+  function drawLine(pts, color) {
+    if (pts.length < 2) return;
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    pts.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
+    ctx.stroke();
+    pts.forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+  }
+
+  drawLine(seqPts, '#5b7fff');
+  drawLine(randPts, '#ff6b6b');
+
+  // Transition marker
+  const transIdx = allTrialSequence.findIndex(t => t.phase === 'rand');
+  if (transIdx > 0) {
+    const x = xOf(transIdx);
+    ctx.strokeStyle = 'rgba(255,107,107,0.5)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, H - pad.bottom); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,107,107,0.7)';
+    ctx.font = '10px Space Mono, monospace';
+    ctx.fillText('↑ Block 2', x + 4, H - pad.bottom - 4);
+  }
+}
+  const d = document.getElementById('debrief-questions');
+  d.style.display = d.style.display === 'none' ? 'block' : 'none';
+}
+
+function restartTask() {
+  document.getElementById('screen-results').classList.remove('active');
+  document.getElementById('screen-intro').classList.add('active');
+  document.getElementById('debrief-questions').style.display = 'none';
+}
+
+function skipToResults() {
+  // Instructor shortcut — fill fake data and jump
+  if (phase !== 'running') return;
+  waitingForResponse = false;
+  allTrialSequence.forEach((t, i) => {
+    const fakeRT = t.phase === 'seq'
+      ? 280 + Math.round((1 - i / allTrialSequence.length) * 120) + Math.round(Math.random() * 60 - 30)
+      : 380 + Math.round(Math.random() * 80);
+    trialData.push({ trial: i + 1, rt: fakeRT, correct: Math.random() > 0.08, phase: t.phase });
+  });
+  currentTrial = totalTrials;
+  endTask();
+}
+
+window.addEventListener('resize', updateChart);
+</script>
+</body>
+</html>

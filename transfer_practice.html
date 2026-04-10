@@ -6,866 +6,646 @@
 <title>Skill Transfer Practice — Ch. 8</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg: #F7F5F0;
-  --surface: #FFFFFF;
-  --surface2: #F0EDE6;
-  --border: #E2DDD4;
-  --text: #1A1814;
-  --muted: #7A746A;
-  --accent: #2B4FBF;
-  --pos: #1A6B3A;
-  --pos-bg: #EAF5EE;
-  --pos-border: #B6DFC4;
-  --neg: #8B1A1A;
-  --neg-bg: #FDF0EE;
-  --neg-border: #F0C0B8;
-  --mix: #7A4800;
-  --mix-bg: #FDF6EA;
-  --mix-border: #F0D9A0;
-  --zero: #1A3A6B;
-  --zero-bg: #EEF2FC;
-  --zero-border: #B8CCF0;
-  --correct: #1A6B3A;
-  --wrong: #8B1A1A;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F7F5F0;--surface:#FFFFFF;--surface2:#F0EDE6;--border:#E2DDD4;
+  --text:#1A1814;--muted:#7A746A;--accent:#2B4FBF;
+  --pos:#1A6B3A;--pos-bg:#EAF5EE;--pos-bd:#B6DFC4;
+  --neg:#8B1A1A;--neg-bg:#FDF0EE;--neg-bd:#F0C0B8;
+  --mix:#7A4800;--mix-bg:#FDF6EA;--mix-bd:#F0D9A0;
+  --zero:#1A3A6B;--zero-bg:#EEF2FC;--zero-bd:#B8CCF0;
+  --carry-bg:#F0FAF4;--carry-bd:#7CC49A;--carry-text:#1A6B3A;
+  --diff-bg:#FDF4F2;--diff-bd:#E8A090;--diff-text:#8B3A2A;
 }
-
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2.5rem 1rem 4rem;
-}
-
-.app-shell {
-  width: min(680px, 100%);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* Header */
-.app-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.chapter-tag {
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-
-.app-title {
-  font-family: 'DM Serif Display', serif;
-  font-size: 30px;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-
-.app-subtitle {
-  font-size: 14px;
-  color: var(--muted);
-}
-
-/* Progress */
-.progress-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 1.5rem;
-}
-
-.progress-bar-wrap {
-  flex: 1;
-  height: 5px;
-  background: var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 10px;
-  transition: width 0.4s ease;
-}
-
-.progress-label {
-  font-size: 12px;
-  color: var(--muted);
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.score-pill {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-/* Card */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 2rem;
-  margin-bottom: 1rem;
-}
-
-.scenario-label {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 10px;
-}
-
-.scenario-text {
-  font-size: 17px;
-  line-height: 1.65;
-  color: var(--text);
-  margin-bottom: 1.25rem;
-}
-
-.question-text {
-  font-size: 14px;
-  font-style: italic;
-  color: var(--muted);
-  line-height: 1.6;
-  padding: 12px 16px;
-  background: var(--surface2);
-  border-radius: 8px;
-  border-left: 3px solid var(--border);
-}
-
-/* Options grid */
-.options-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 1.5rem;
-}
-
-.opt-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  padding: 14px 16px;
-  border-radius: 10px;
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  cursor: pointer;
-  transition: all 0.15s;
-  text-align: left;
-}
-
-.opt-btn:hover:not(:disabled) {
-  border-color: var(--accent);
-  background: #F0F4FF;
-}
-
-.opt-btn:disabled { cursor: default; }
-
-.opt-symbol {
-  font-family: 'DM Serif Display', serif;
-  font-size: 20px;
-  line-height: 1;
-}
-
-.opt-label {
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 500;
-}
-
-/* Selected states */
-.opt-btn.selected-correct {
-  border-color: var(--pos);
-  background: var(--pos-bg);
-}
-.opt-btn.selected-correct .opt-symbol { color: var(--pos); }
-.opt-btn.selected-correct .opt-label { color: var(--pos); }
-
-.opt-btn.selected-wrong {
-  border-color: var(--neg);
-  background: var(--neg-bg);
-}
-.opt-btn.selected-wrong .opt-symbol { color: var(--neg); }
-.opt-btn.selected-wrong .opt-label { color: var(--neg); }
-
-.opt-btn.reveal-correct {
-  border-color: var(--pos);
-  background: var(--pos-bg);
-}
-.opt-btn.reveal-correct .opt-symbol { color: var(--pos); }
-.opt-btn.reveal-correct .opt-label { color: var(--pos); }
-
-/* Feedback box */
-.feedback-box {
-  margin-top: 1.25rem;
-  border-radius: 10px;
-  padding: 16px 18px;
-  border: 1.5px solid;
-  display: none;
-  animation: slideIn 0.25s ease;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.feedback-box.correct {
-  background: var(--pos-bg);
-  border-color: var(--pos-border);
-}
-
-.feedback-box.wrong {
-  background: var(--neg-bg);
-  border-color: var(--neg-border);
-}
-
-.feedback-verdict {
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.feedback-verdict.correct { color: var(--pos); }
-.feedback-verdict.wrong { color: var(--neg); }
-
-.feedback-explanation {
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--text);
-}
-
-.correct-answer-note {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--pos);
-  margin-bottom: 6px;
-}
-
-/* Type badge */
-.type-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 20px;
-  margin-bottom: 1rem;
-}
-
-.type-badge.pos { background: var(--pos-bg); color: var(--pos); border: 1px solid var(--pos-border); }
-.type-badge.neg { background: var(--neg-bg); color: var(--neg); border: 1px solid var(--neg-border); }
-.type-badge.mix { background: var(--mix-bg); color: var(--mix); border: 1px solid var(--mix-border); }
-.type-badge.zero { background: var(--zero-bg); color: var(--zero); border: 1px solid var(--zero-border); }
-
-/* Buttons */
-.btn-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 1.25rem;
-}
-
-.btn {
-  padding: 11px 24px;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-primary {
-  background: var(--accent);
-  color: #fff;
-}
-
-.btn-primary:hover { opacity: 0.88; }
-.btn-primary:disabled { opacity: 0.4; cursor: default; }
-
-.btn-ghost {
-  background: transparent;
-  border: 1.5px solid var(--border);
-  color: var(--muted);
-}
-
-.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-
-/* Legend card */
-.legend-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 1rem;
-}
-
-.legend-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
-}
-
-.legend-sym {
-  font-family: 'DM Serif Display', serif;
-  font-size: 16px;
-  width: 22px;
-  flex-shrink: 0;
-  line-height: 1.2;
-}
-
-.legend-desc { color: var(--muted); line-height: 1.5; }
-
-/* Results screen */
-.results-screen {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0;
-}
-
-.results-screen.active { display: flex; }
-
-.score-display {
-  font-family: 'DM Serif Display', serif;
-  font-size: 72px;
-  color: var(--accent);
-  line-height: 1;
-  margin: 1rem 0 0.25rem;
-}
-
-.score-label {
-  font-size: 16px;
-  color: var(--muted);
-  margin-bottom: 1.5rem;
-}
-
-.breakdown-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  width: 100%;
-  margin-bottom: 1.5rem;
-}
-
-.breakdown-cell {
-  padding: 12px 8px;
-  border-radius: 10px;
-  border: 1.5px solid;
-  text-align: center;
-}
-
-.breakdown-cell .b-sym { font-family: 'DM Serif Display', serif; font-size: 20px; }
-.breakdown-cell .b-label { font-size: 11px; margin: 2px 0; }
-.breakdown-cell .b-score { font-size: 18px; font-weight: 600; }
-.breakdown-cell.pos { background: var(--pos-bg); border-color: var(--pos-border); color: var(--pos); }
-.breakdown-cell.neg { background: var(--neg-bg); border-color: var(--neg-border); color: var(--neg); }
-.breakdown-cell.mix { background: var(--mix-bg); border-color: var(--mix-border); color: var(--mix); }
-.breakdown-cell.zero { background: var(--zero-bg); border-color: var(--zero-border); color: var(--zero); }
-
-.missed-section {
-  width: 100%;
-  text-align: left;
-  margin-bottom: 1.5rem;
-}
-
-.missed-header {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 10px;
-}
-
-.missed-item {
-  font-size: 13px;
-  line-height: 1.6;
-  padding: 10px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  margin-bottom: 6px;
-  color: var(--text);
-}
-
-.missed-item .mi-correct { font-weight: 600; color: var(--pos); }
-
-/* Shuffle indicator */
-.shuffle-note {
-  font-size: 12px;
-  color: var(--muted);
-  text-align: center;
-  margin-bottom: 1rem;
-}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 5rem;}
+.shell{width:min(700px,100%);display:flex;flex-direction:column;}
+.app-header{text-align:center;margin-bottom:1.75rem;}
+.chapter-tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.app-title{font-family:'DM Serif Display',serif;font-size:28px;margin-bottom:3px;}
+.app-sub{font-size:13px;color:var(--muted);}
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;}
+.prog-wrap{flex:1;height:4px;background:var(--border);border-radius:10px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--accent);border-radius:10px;transition:width .4s;}
+.prog-label{font-size:12px;color:var(--muted);white-space:nowrap;}
+.score-pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.75rem;margin-bottom:.875rem;}
+.card-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+.skill-row{display:grid;grid-template-columns:1fr 28px 1fr;gap:8px;align-items:center;margin-bottom:1.25rem;}
+.skill-box{padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;}
+.sk-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:3px;}
+.sk-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.3;}
+.arrow-mid{text-align:center;font-size:18px;color:var(--muted);}
+.scenario-text{font-size:16px;line-height:1.65;color:var(--text);margin-bottom:1.25rem;}
+.question-text{font-size:13px;font-style:italic;color:var(--muted);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--border);margin-bottom:1.25rem;}
+.pool-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;}
+.hint-strip{font-size:12px;color:var(--muted);margin-bottom:.5rem;}
+.chip-pool{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;padding:12px;background:var(--bg);border:1.5px dashed var(--border);border-radius:10px;margin-bottom:1rem;}
+.chip-pool.drag-over{background:#EEF2FF;border-color:var(--accent);}
+.chip{display:inline-flex;align-items:center;padding:7px 13px;background:#FFF;border:1.5px solid #D4CFC7;border-radius:20px;font-size:13px;color:var(--text);cursor:pointer;user-select:none;transition:all .15s;white-space:nowrap;}
+.chip:hover{border-color:var(--accent);background:#F0F4FF;}
+.chip.selected{border-color:var(--accent);background:#E8EEFF;box-shadow:0 0 0 2px rgba(43,79,191,.2);}
+.chip.drag-ghost{opacity:.35;}
+.chip.ok-carry{background:var(--carry-bg);border-color:var(--carry-bd);color:var(--carry-text);cursor:default;}
+.chip.ok-diff{background:var(--diff-bg);border-color:var(--diff-bd);color:var(--diff-text);cursor:default;}
+.chip.wrong-chip{background:#FFF0F0;border-color:#E8A0A0;color:#8B1A1A;text-decoration:line-through;cursor:default;}
+.zones{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;}
+.zone{padding:12px;border-radius:10px;border:1.5px dashed;min-height:80px;transition:all .2s;cursor:pointer;}
+.zone.carry{background:var(--carry-bg);border-color:var(--carry-bd);}
+.zone.diff{background:var(--diff-bg);border-color:var(--diff-bd);}
+.zone.drag-over{filter:brightness(.96);border-style:solid;}
+.zone-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px;}
+.zone.carry .zone-title{color:var(--carry-text);}
+.zone.diff .zone-title{color:var(--diff-text);}
+.zone-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;}
+.sort-feedback{border-radius:10px;padding:14px 16px;margin-bottom:1rem;display:none;animation:fadein .2s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.sort-feedback.good{background:var(--pos-bg);border:1.5px solid var(--pos-bd);}
+.sort-feedback.partial{background:var(--mix-bg);border:1.5px solid var(--mix-bd);}
+.sort-feedback.poor{background:var(--neg-bg);border:1.5px solid var(--neg-bd);}
+.sf-head{font-size:13px;font-weight:600;margin-bottom:5px;}
+.sort-feedback.good .sf-head{color:var(--pos);}
+.sort-feedback.partial .sf-head{color:var(--mix);}
+.sort-feedback.poor .sf-head{color:var(--neg);}
+.sf-body{font-size:13px;line-height:1.6;color:var(--text);}
+.dir-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1rem;}
+.dir-btn{padding:14px 16px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;display:flex;flex-direction:column;gap:3px;text-align:left;transition:all .15s;}
+.dir-btn:hover:not(:disabled){border-color:var(--accent);background:#F0F4FF;}
+.dir-btn:disabled{cursor:default;}
+.dir-sym{font-family:'DM Serif Display',serif;font-size:22px;line-height:1;}
+.dir-name{font-size:12px;font-weight:500;color:var(--muted);}
+.dir-btn.chosen-right{border-color:var(--pos);background:var(--pos-bg);}
+.dir-btn.chosen-right .dir-sym,.dir-btn.chosen-right .dir-name{color:var(--pos);}
+.dir-btn.chosen-wrong{border-color:var(--neg);background:var(--neg-bg);}
+.dir-btn.chosen-wrong .dir-sym,.dir-btn.chosen-wrong .dir-name{color:var(--neg);}
+.dir-btn.reveal-answer{border-color:var(--pos);background:var(--pos-bg);}
+.dir-btn.reveal-answer .dir-sym,.dir-btn.reveal-answer .dir-name{color:var(--pos);}
+.dir-feedback{border-radius:10px;padding:14px 16px;margin-top:.875rem;display:none;animation:fadein .2s ease;}
+.dir-feedback.correct{background:var(--pos-bg);border:1.5px solid var(--pos-bd);}
+.dir-feedback.wrong{background:var(--neg-bg);border:1.5px solid var(--neg-bd);}
+.df-verdict{font-size:13px;font-weight:600;margin-bottom:6px;}
+.dir-feedback.correct .df-verdict{color:var(--pos);}
+.dir-feedback.wrong .df-verdict{color:var(--neg);}
+.df-note{font-size:12px;font-weight:600;color:var(--pos);margin-bottom:5px;display:none;}
+.df-expl{font-size:13px;line-height:1.7;color:var(--text);}
+.btn-row{display:flex;gap:10px;margin-top:.875rem;}
+.btn{padding:10px 22px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-p{background:var(--accent);color:#fff;border:none;}
+.btn-p:hover{opacity:.88;}
+.btn-p:disabled{opacity:.35;cursor:default;}
+.btn-g{background:transparent;border:1.5px solid var(--border);color:var(--muted);}
+.btn-g:hover{border-color:var(--accent);color:var(--accent);}
+.screen{display:none;}
+.screen.active{display:block;}
+.legend-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:1rem;}
+.legend-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;padding:10px;background:var(--surface2);border-radius:8px;}
+.legend-sym{font-family:'DM Serif Display',serif;font-size:17px;width:20px;flex-shrink:0;line-height:1.2;}
+.results-center{text-align:center;margin-bottom:.875rem;}
+.big-score{font-family:'DM Serif Display',serif;font-size:64px;color:var(--accent);line-height:1;margin:.5rem 0 .25rem;}
+.score-sub{font-size:15px;color:var(--muted);}
+.breakdown{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem;}
+.bd-cell{padding:12px 6px;border-radius:10px;border:1.5px solid;text-align:center;}
+.bd-sym{font-family:'DM Serif Display',serif;font-size:18px;}
+.bd-label{font-size:10px;margin:2px 0;text-transform:uppercase;letter-spacing:.06em;}
+.bd-score{font-size:16px;font-weight:600;}
+.bd-cell.pos{background:var(--pos-bg);border-color:var(--pos-bd);color:var(--pos);}
+.bd-cell.neg{background:var(--neg-bg);border-color:var(--neg-bd);color:var(--neg);}
+.bd-cell.mix{background:var(--mix-bg);border-color:var(--mix-bd);color:var(--mix);}
+.bd-cell.zero{background:var(--zero-bg);border-color:var(--zero-bd);color:var(--zero);}
+.missed-head{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px;}
+.missed-item{font-size:13px;line-height:1.6;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;}
+.mc{font-weight:600;color:var(--pos);}
 </style>
 </head>
 <body>
-
-<div class="app-shell">
+<div class="shell">
   <div class="app-header">
     <div class="chapter-tag">Chapter 8 — Skill Memory</div>
     <div class="app-title">Skill Transfer Practice</div>
-    <div class="app-subtitle">Predict the direction of transfer, then check your reasoning</div>
+    <div class="app-sub">Sort the elements, then predict the direction of transfer</div>
   </div>
 
-  <!-- Intro screen -->
-  <div id="screen-intro">
-    <div class="card" style="margin-bottom:1rem;">
-      <div class="scenario-label">How it works</div>
-      <p style="font-size:15px; line-height:1.7; color:var(--muted); margin-bottom:1.25rem;">For each scenario, predict whether prior skill experience will <strong style="color:var(--text)">help, hurt, both, or have no effect</strong> on learning a new skill. After predicting, you'll see a full explanation grounded in Thorndike's identical elements theory.</p>
-
-      <div class="legend-card" style="margin-bottom:0;">
-        <div class="legend-item">
-          <div class="legend-sym" style="color:var(--pos);">+</div>
-          <div class="legend-desc"><strong>Positive</strong> — prior skill speeds up learning</div>
+  <!-- INTRO -->
+  <div id="screen-intro" class="screen active">
+    <div class="card">
+      <div class="card-label">How this works</div>
+      <p style="font-size:15px;line-height:1.7;color:var(--muted);margin-bottom:1rem;">Each item shows a person moving from one skill to another. You'll see a set of skill elements. Sort each one into the correct bucket — then predict the overall direction of transfer.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;">
+        <div style="padding:12px;background:var(--carry-bg);border:1.5px solid var(--carry-bd);border-radius:10px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--carry-text);margin-bottom:4px;">✓ Carries over</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.5;">Identical elements — skills or knowledge that transfer directly from the old skill to the new one</div>
         </div>
-        <div class="legend-item">
-          <div class="legend-sym" style="color:var(--neg);">−</div>
-          <div class="legend-desc"><strong>Negative</strong> — prior skill actively interferes</div>
+        <div style="padding:12px;background:var(--diff-bg);border:1.5px solid var(--diff-bd);border-radius:10px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--diff-text);margin-bottom:4px;">✗ New or conflicts</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.5;">Different elements — must be learned fresh, or the old habit actively interferes</div>
         </div>
-        <div class="legend-item">
-          <div class="legend-sym" style="color:var(--mix);">±</div>
-          <div class="legend-desc"><strong>Mixed</strong> — some elements help, some interfere</div>
-        </div>
-        <div class="legend-item">
-          <div class="legend-sym" style="color:var(--zero);">0</div>
-          <div class="legend-desc"><strong>Near-zero</strong> — skills share almost no elements</div>
-        </div>
+      </div>
+      <div class="legend-grid">
+        <div class="legend-item"><span class="legend-sym" style="color:var(--pos);">+</span><div><strong>Positive</strong> — mostly carries over</div></div>
+        <div class="legend-item"><span class="legend-sym" style="color:var(--neg);">−</span><div><strong>Negative</strong> — mostly conflicts</div></div>
+        <div class="legend-item"><span class="legend-sym" style="color:var(--mix);">±</span><div><strong>Mixed</strong> — some carry, some conflict</div></div>
+        <div class="legend-item"><span class="legend-sym" style="color:var(--zero);">0</span><div><strong>Near-zero</strong> — almost nothing carries over</div></div>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="startPractice()" style="width:100%;">Start Practice →</button>
+    <button class="btn btn-p" onclick="startPractice()" style="width:100%;">Start Practice →</button>
   </div>
 
-  <!-- Practice screen -->
-  <div id="screen-practice" style="display:none;">
-    <div class="progress-row">
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
-      </div>
-      <div class="progress-label" id="progress-label">1 / 25</div>
+  <!-- PRACTICE -->
+  <div id="screen-practice" class="screen">
+    <div class="prog-row">
+      <div class="prog-wrap"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-label" id="prog-label">1 / 25</div>
       <div class="score-pill" id="score-pill">0 correct</div>
     </div>
 
-    <div class="card">
-      <div class="scenario-label" id="q-num">Scenario 1</div>
-      <p class="scenario-text" id="q-scenario"></p>
-      <div class="question-text" id="q-question"></div>
+    <!-- Stage 1 -->
+    <div id="stage-1">
+      <div class="card">
+        <div class="card-label" id="q-num">Scenario 1</div>
+        <div class="skill-row">
+          <div class="skill-box"><div class="sk-label">From</div><div class="sk-name" id="skill-from">—</div></div>
+          <div class="arrow-mid">→</div>
+          <div class="skill-box"><div class="sk-label">To</div><div class="sk-name" id="skill-to">—</div></div>
+        </div>
+        <p class="scenario-text" id="q-scenario"></p>
+        <p class="question-text" id="q-question"></p>
 
-      <div class="options-grid" id="options-grid">
-        <button class="opt-btn" data-dir="+" onclick="selectAnswer('+')">
-          <span class="opt-symbol" style="color:var(--pos);">+</span>
-          <span class="opt-label">Positive transfer</span>
-        </button>
-        <button class="opt-btn" data-dir="-" onclick="selectAnswer('-')">
-          <span class="opt-symbol" style="color:var(--neg);">−</span>
-          <span class="opt-label">Negative transfer</span>
-        </button>
-        <button class="opt-btn" data-dir="±" onclick="selectAnswer('±')">
-          <span class="opt-symbol" style="color:var(--mix);">±</span>
-          <span class="opt-label">Mixed transfer</span>
-        </button>
-        <button class="opt-btn" data-dir="0" onclick="selectAnswer('0')">
-          <span class="opt-symbol" style="color:var(--zero);">0</span>
-          <span class="opt-label">Near-zero transfer</span>
-        </button>
-      </div>
+        <div class="pool-label">Skill elements</div>
+        <div class="hint-strip" id="hint-strip">Tap a chip to select it, then tap a bucket to place it</div>
+        <div class="chip-pool" id="chip-pool"
+          ondragover="onDragOverPool(event)" ondrop="onDropPool(event)"></div>
 
-      <div class="feedback-box" id="feedback-box">
-        <div class="feedback-verdict" id="feedback-verdict"></div>
-        <div class="correct-answer-note" id="correct-answer-note" style="display:none;"></div>
-        <div class="feedback-explanation" id="feedback-explanation"></div>
+        <div class="zones">
+          <div class="zone carry" id="zone-carry"
+            ondragover="onDragOver(event,'carry')" ondrop="onDrop(event,'carry')"
+            onclick="onZoneClick('carry')">
+            <div class="zone-title">✓ Carries over</div>
+            <div class="zone-chips" id="chips-carry"></div>
+          </div>
+          <div class="zone diff" id="zone-diff"
+            ondragover="onDragOver(event,'diff')" ondrop="onDrop(event,'diff')"
+            onclick="onZoneClick('diff')">
+            <div class="zone-title">✗ New or conflicts</div>
+            <div class="zone-chips" id="chips-diff"></div>
+          </div>
+        </div>
+
+        <div class="sort-feedback" id="sort-feedback">
+          <div class="sf-head" id="sf-head"></div>
+          <div class="sf-body" id="sf-body"></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-p" id="check-btn" onclick="checkSort()" disabled>Check my sorting</button>
+          <button class="btn btn-g" onclick="skipQuestion()">Skip</button>
+        </div>
       </div>
     </div>
 
-    <div class="btn-row">
-      <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" style="display:none;">Next →</button>
-      <button class="btn btn-ghost" onclick="skipQuestion()">Skip</button>
+    <!-- Stage 2 -->
+    <div id="stage-2" style="display:none;">
+      <div class="card">
+        <div class="card-label">Now predict the direction of transfer</div>
+        <p style="font-size:14px;line-height:1.6;color:var(--muted);margin-bottom:.875rem;">Based on your element sort — how will the prior skill affect learning the new one overall?</p>
+        <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;">
+          <span id="s2-carry" style="font-size:13px;padding:4px 10px;background:var(--carry-bg);border:1px solid var(--carry-bd);border-radius:20px;color:var(--carry-text);font-weight:600;"></span>
+          <span id="s2-diff" style="font-size:13px;padding:4px 10px;background:var(--diff-bg);border:1px solid var(--diff-bd);border-radius:20px;color:var(--diff-text);font-weight:600;"></span>
+        </div>
+        <div class="dir-grid" id="dir-grid">
+          <button class="dir-btn" data-dir="+" onclick="selectDir('+')" ><span class="dir-sym" style="color:var(--pos);">+</span><span class="dir-name">Positive transfer</span></button>
+          <button class="dir-btn" data-dir="-" onclick="selectDir('-')" ><span class="dir-sym" style="color:var(--neg);">−</span><span class="dir-name">Negative transfer</span></button>
+          <button class="dir-btn" data-dir="±" onclick="selectDir('±')" ><span class="dir-sym" style="color:var(--mix);">±</span><span class="dir-name">Mixed transfer</span></button>
+          <button class="dir-btn" data-dir="0" onclick="selectDir('0')" ><span class="dir-sym" style="color:var(--zero);">0</span><span class="dir-name">Near-zero transfer</span></button>
+        </div>
+        <div class="dir-feedback" id="dir-feedback">
+          <div class="df-verdict" id="df-verdict"></div>
+          <div class="df-note" id="df-note"></div>
+          <div class="df-expl" id="df-expl"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-p" id="next-btn" onclick="nextQuestion()" style="display:none;">Next →</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Results screen -->
-  <div id="screen-results" class="results-screen">
-    <div class="chapter-tag">Practice Complete</div>
-    <div class="score-display" id="final-score"></div>
-    <div class="score-label" id="final-label"></div>
-
-    <div class="breakdown-grid" id="breakdown-grid"></div>
-
-    <div class="missed-section" id="missed-section"></div>
-
-    <button class="btn btn-primary" onclick="restartPractice()" style="width:100%; margin-bottom:10px;">Practice Again (Reshuffled)</button>
-    <button class="btn btn-ghost" onclick="reviewMissed()" id="review-btn" style="width:100%;">Review Missed Questions Only</button>
+  <!-- RESULTS -->
+  <div id="screen-results" class="screen">
+    <div class="card results-center">
+      <div class="chapter-tag">Practice complete</div>
+      <div class="big-score" id="final-score"></div>
+      <div class="score-sub" id="final-sub"></div>
+    </div>
+    <div class="card">
+      <div class="breakdown" id="breakdown"></div>
+      <div class="missed-head" id="missed-head"></div>
+      <div id="missed-list"></div>
+      <div class="btn-row" style="margin-top:1rem;">
+        <button class="btn btn-p" onclick="restart()" style="flex:1;">Practice Again</button>
+        <button class="btn btn-g" id="review-btn" onclick="reviewMissed()" style="flex:1;display:none;">Review Missed</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-const SCENARIOS = [
-  {
-    dir: '+',
-    scenario: 'An experienced kayaker decides to take up stand-up paddleboarding (SUP) on flatwater lakes.',
-    question: 'Does kayaking experience help, hurt, or have no effect on learning to SUP?',
-    explanation: 'Positive transfer. Balance on moving water, paddle reading, stroke mechanics, and reading currents all share identical elements. The upright stance is new, but the foundational water skills transfer strongly — most kayakers adapt to SUP within a single session.'
+const SCENARIOS=[
+  {from:'Kayaking',to:'Stand-up paddleboarding',dir:'+',
+   scenario:'An experienced kayaker decides to take up stand-up paddleboarding (SUP) on flatwater lakes.',
+   question:'Does kayaking experience help, hurt, or have no effect on learning to SUP?',
+   elements:[
+     {text:'Reading water currents',type:'carry'},{text:'Paddle stroke mechanics',type:'carry'},
+     {text:'Balance on moving water',type:'carry'},{text:'Awareness of wind & conditions',type:'carry'},
+     {text:'Upright standing posture',type:'diff'},{text:'Hip-based balance adjustment',type:'diff'}],
+   explanation:'Strongly positive transfer. Four of six elements carry directly — water reading, paddle mechanics, balance instincts, and environmental awareness are all identical elements. The standing posture and hip balance are new, but they are surface adjustments learned on a strong foundation.'
   },
-  {
-    dir: '+',
-    scenario: 'A fluent Spanish speaker enrolls in a beginner Italian course.',
-    question: 'Does Spanish fluency transfer to learning Italian?',
-    explanation: 'Strongly positive transfer. Spanish and Italian share Latin roots, similar grammar structures, verb conjugation patterns, and enormous overlapping vocabulary. A Spanish speaker begins Italian with thousands of identical elements already in place — studies show Spanish speakers acquire Italian roughly 3–4× faster than speakers of unrelated languages.'
+  {from:'Spanish (fluent)',to:'Italian (beginner)',dir:'+',
+   scenario:'A fluent Spanish speaker enrolls in a beginner Italian course.',
+   question:'Does Spanish fluency transfer to learning Italian?',
+   elements:[
+     {text:'Latin root vocabulary',type:'carry'},{text:'Verb conjugation logic',type:'carry'},
+     {text:'Grammatical gender system',type:'carry'},{text:'Vowel-heavy pronunciation',type:'carry'},
+     {text:'Italian-specific idioms',type:'diff'},{text:'False cognates (faux amis)',type:'diff'}],
+   explanation:'Strongly positive transfer. Spanish and Italian share Latin roots, similar grammar, verb conjugation patterns, and enormous overlapping vocabulary. False cognates and Italian-specific idioms must be learned fresh, but they are a small fraction of the total task.'
   },
-  {
-    dir: '+',
-    scenario: 'A professional chef who specializes in classic French cuisine begins training in Italian cooking.',
-    question: 'Does French culinary expertise transfer to Italian cuisine?',
-    explanation: 'Positive transfer. Knife skills, sauce fundamentals, flavor development, stock-making, and kitchen organization all transfer directly. The ingredients and flavor profiles differ, but the procedural skills and sensory judgment that define culinary expertise are largely shared.'
+  {from:'French cuisine',to:'Italian cuisine',dir:'+',
+   scenario:'A professional chef who specializes in classic French cuisine begins training in Italian cooking.',
+   question:'Does French culinary expertise transfer to Italian cuisine?',
+   elements:[
+     {text:'Knife skills & precision',type:'carry'},{text:'Sauce fundamentals',type:'carry'},
+     {text:'Stock and broth technique',type:'carry'},{text:'Flavor development & seasoning instinct',type:'carry'},
+     {text:'Pasta-making technique',type:'diff'},{text:'Regional Italian ingredients',type:'diff'}],
+   explanation:'Positive transfer. The core procedural skills of professional cooking — knife work, sauce building, stock making, and seasoning judgment — are identical elements across both traditions. The new elements are specific to Italian cuisine but learned on a very strong foundation.'
   },
-  {
-    dir: '+',
-    scenario: 'A jazz trumpeter begins taking lessons on the flugelhorn.',
-    question: 'Does trumpet expertise transfer to flugelhorn?',
-    explanation: 'Near-perfect positive transfer. The flugelhorn uses the same embouchure (lip position), identical valve layout, same fingering system, and same breath support technique. The tone is darker and the bore wider, requiring slight adjustments — but a skilled trumpeter can play flugelhorn from the first session.'
+  {from:'Trumpet',to:'Flugelhorn',dir:'+',
+   scenario:'A jazz trumpeter begins taking lessons on the flugelhorn.',
+   question:'Does trumpet expertise transfer to flugelhorn?',
+   elements:[
+     {text:'Embouchure (lip position & tension)',type:'carry'},{text:'Valve fingering system',type:'carry'},
+     {text:'Breath support & air column control',type:'carry'},{text:'Music reading & phrasing',type:'carry'},
+     {text:'Adjusting for the wider bore',type:'diff'},{text:'Producing a darker, mellower tone',type:'diff'}],
+   explanation:'Near-perfect positive transfer. The flugelhorn uses the same embouchure, identical valve layout, and the same breath support. The bore is wider and the tone darker — minor adjustments, but a skilled trumpeter can play flugelhorn from the very first session.'
   },
-  {
-    dir: '+',
-    scenario: 'A long-distance runner begins training for the cycling leg of a triathlon.',
-    question: 'Does marathon running experience help with learning competitive cycling?',
-    explanation: 'Positive transfer for the underlying systems: cardiovascular base, pacing strategy, nutrition discipline, and mental endurance all carry over. Cycling-specific mechanics (cadence, gear selection, cleat use, bike handling) require dedicated learning — but the runner starts far ahead of a true beginner.'
+  {from:'Marathon running',to:'Competitive cycling',dir:'+',
+   scenario:'A long-distance runner begins training for the cycling leg of a triathlon.',
+   question:'Does marathon running experience help with learning competitive cycling?',
+   elements:[
+     {text:'Cardiovascular base & VO₂ capacity',type:'carry'},{text:'Pacing & race strategy',type:'carry'},
+     {text:'Mental endurance',type:'carry'},{text:'Nutrition & hydration discipline',type:'carry'},
+     {text:'Cleat mechanics & pedal cadence',type:'diff'},{text:'Gear selection & bike handling',type:'diff'}],
+   explanation:'Positive transfer for the underlying systems. Cardiovascular base, pacing, mental toughness, and nutritional discipline all carry over directly. Cycling-specific mechanics must be learned from scratch, but the runner begins far ahead of a true novice.'
   },
-  {
-    dir: '+',
-    scenario: 'A trained nurse begins cross-training as a surgical technician.',
-    question: 'Does nursing expertise transfer to surgical tech work?',
-    explanation: 'Positive transfer. Sterile field maintenance, anatomical knowledge, procedural sequencing, patient monitoring, and medical equipment familiarity all share identical elements. The surgical tech role emphasizes instrument handling and anticipating surgeon needs — new skills, but built on a strong foundation.'
+  {from:'Registered nurse',to:'Surgical technician',dir:'+',
+   scenario:'A trained nurse begins cross-training as a surgical technician.',
+   question:'Does nursing expertise transfer to surgical tech work?',
+   elements:[
+     {text:'Sterile field maintenance',type:'carry'},{text:'Anatomical knowledge',type:'carry'},
+     {text:'Patient monitoring & vital signs',type:'carry'},{text:'Medical equipment familiarity',type:'carry'},
+     {text:'Surgical instrument handling & passing',type:'diff'},{text:'Anticipating surgeon needs in real time',type:'diff'}],
+   explanation:'Positive transfer. Sterile technique, anatomical knowledge, patient monitoring, and equipment familiarity are all identical elements. The surgical tech role adds instrument-specific skills and surgeon-anticipation — new, but built on a very strong foundation.'
   },
-  {
-    dir: '+',
-    scenario: 'A competitive wrestler begins training in judo.',
-    question: 'Does wrestling experience transfer to judo?',
-    explanation: 'Positive transfer, especially for grip strength, takedown instincts, balance disruption, and mat awareness. Judo\'s throwing mechanics and its emphasis on using the opponent\'s momentum differ from wrestling\'s drive-and-grind style — but the physical intelligence, body control, and grappling instincts are shared elements.'
+  {from:'Wrestling',to:'Judo',dir:'+',
+   scenario:'A competitive wrestler begins training in judo.',
+   question:'Does wrestling experience transfer to judo?',
+   elements:[
+     {text:'Balance disruption instincts',type:'carry'},{text:'Body control & mat awareness',type:'carry'},
+     {text:'Grip strength',type:'carry'},{text:'Takedown timing & reading opponents',type:'carry'},
+     {text:'Gi-based cloth grip technique',type:'diff'},{text:'Using opponent\'s momentum (kuzushi)',type:'diff'}],
+   explanation:'Positive transfer. Balance disruption, body control, grip strength, and timing all carry directly. Judo\'s cloth-grip system and momentum-redirection principle are new motor programs, but learned on top of a strong grappling foundation.'
   },
-  {
-    dir: '+',
-    scenario: 'A high school basketball player begins learning to play volleyball.',
-    question: 'Does basketball experience transfer to volleyball?',
-    explanation: 'Positive transfer. Court awareness, jumping, hand-eye coordination, team positioning, and reading opponents all carry over. The most significant new skill is the overhand serve and spike mechanics — but the athletic foundation and sport-specific IQ transfer well.'
+  {from:'Basketball',to:'Volleyball',dir:'+',
+   scenario:'A high school basketball player begins learning to play volleyball.',
+   question:'Does basketball experience transfer to volleyball?',
+   elements:[
+     {text:'Court spatial awareness',type:'carry'},{text:'Jumping mechanics',type:'carry'},
+     {text:'Hand-eye coordination',type:'carry'},{text:'Team positioning & reading play',type:'carry'},
+     {text:'Overhand serve mechanics',type:'diff'},{text:'Spike approach & arm swing',type:'diff'}],
+   explanation:'Positive transfer. Court awareness, jumping, hand-eye coordination, and team positioning are all shared elements. The sport-specific striking mechanics are new, but the athletic foundation and game intelligence transfer well.'
   },
-  {
-    dir: '-',
-    scenario: 'A U.S. driver moves to the United Kingdom and must drive on the left side of the road for the first time.',
-    question: 'Does years of driving experience in the U.S. help or hurt driving in the UK?',
-    explanation: 'Negative transfer — and a genuinely dangerous one. Every deeply automatized road instinct (stay right, look left first, mirror-check sequence) now produces the wrong response. Experienced drivers often report UK driving feels harder than when they first learned, because their motor programs are so strong they fire automatically even when consciously suppressing them.'
+  {from:'U.S. driving (right side)',to:'U.K. driving (left side)',dir:'-',
+   scenario:'A U.S. driver moves to the United Kingdom and must drive on the left side of the road for the first time.',
+   question:'Does years of U.S. driving experience help or hurt driving in the UK?',
+   elements:[
+     {text:'Vehicle controls (pedals, indicators)',type:'carry'},{text:'General road rule knowledge',type:'carry'},
+     {text:'Lane position instinct',type:'diff'},{text:'Intersection scanning direction',type:'diff'},
+     {text:'Roundabout navigation direction',type:'diff'},{text:'Mirror-check sequence',type:'diff'}],
+   explanation:'Negative transfer. Vehicle controls carry over, but every deeply automatized spatial instinct — lane position, scanning direction, roundabout navigation — now fires in the wrong direction. Experienced drivers often perform below beginners because their motor programs are too strong to override consciously.'
   },
-  {
-    dir: '-',
-    scenario: 'A right-handed fencer tears a ligament in their right wrist and must switch to left-hand fencing during recovery.',
-    question: 'Does right-hand fencing expertise help or hurt learning left-hand fencing?',
-    explanation: 'Negative transfer. Every reflex — parry angle, advance footwork, lunge depth, spatial targeting — is mirrored and must now produce the opposite output. Expert right-hand fencers often perform below beginners when forced to switch hands, precisely because their motor programs are so well-consolidated that they fire before conscious correction is possible.'
+  {from:'Right-hand fencing',to:'Left-hand fencing',dir:'-',
+   scenario:'A right-handed fencer tears a ligament in their right wrist and must switch to left-hand fencing during recovery.',
+   question:'Does right-hand fencing expertise help or hurt learning left-hand fencing?',
+   elements:[
+     {text:'Fencing tactics & strategy',type:'carry'},{text:'Distance judgment',type:'carry'},
+     {text:'Parry angles (now mirrored)',type:'diff'},{text:'Lunge direction & depth',type:'diff'},
+     {text:'Advance/retreat footwork (mirrored)',type:'diff'},{text:'Spatial targeting of opponent',type:'diff'}],
+   explanation:'Negative transfer. Strategy and distance judgment carry over, but every motor program — parry angles, lunge, footwork, targeting — must now produce the mirrored response. Expert right-hand fencers often perform below beginners when forced to switch because the consolidated motor programs fire automatically.'
   },
-  {
-    dir: '-',
-    scenario: 'A skilled calligrapher begins learning to type on a keyboard for the first time.',
-    question: 'Does calligraphy expertise transfer to typing?',
-    explanation: 'Negative transfer. Calligraphy builds deep habits of controlled pressure, slow deliberate stroke, and pen-grip proprioception — all of which actively conflict with typing\'s requirement for light, rapid, repetitive key strikes with a flat hand position. Calligraphers often report fighting their own hands when learning to type quickly.'
+  {from:'Calligraphy',to:'Keyboard typing',dir:'-',
+   scenario:'A skilled calligrapher begins learning to type on a keyboard for the first time.',
+   question:'Does calligraphy expertise transfer to typing?',
+   elements:[
+     {text:'Letter formation knowledge',type:'carry'},{text:'Fine motor coordination (general)',type:'carry'},
+     {text:'Controlled pressure & slow deliberate stroke',type:'diff'},{text:'Pen-grip proprioception',type:'diff'},
+     {text:'Rapid repetitive light strikes',type:'diff'},{text:'Flat hand / wrist position',type:'diff'}],
+   explanation:'Negative transfer. Letter knowledge carries over, but calligraphy builds habits of controlled pressure, slow deliberate strokes, and pen-grip proprioception — all of which actively interfere with typing\'s demand for rapid, light, repetitive key strikes with a flat hand position.'
   },
-  {
-    dir: '-',
-    scenario: 'An American football defensive back — trained to tackle by wrapping arms and driving through the ball carrier — transitions to playing rugby union.',
-    question: 'Does football tackling expertise transfer to rugby tackling?',
-    explanation: 'Negative transfer. In rugby, a tackle must be made below the shoulders using the arms — no leading with the shoulder, no driving into the head or neck area. The American football technique is not just different from legal rugby technique; it is specifically what rugby rules prohibit. Deeply trained football tacklers must actively unlearn their most automatic motor response.'
+  {from:'American football tackling',to:'Rugby union tackling',dir:'-',
+   scenario:'An American football defensive back begins playing rugby union and must learn to tackle legally.',
+   question:'Does football tackling expertise transfer to rugby tackling?',
+   elements:[
+     {text:'Reading the ball carrier\'s movement',type:'carry'},{text:'Defensive positioning',type:'carry'},
+     {text:'Shoulder-led tackle technique',type:'diff'},{text:'High contact zone instinct',type:'diff'},
+     {text:'Drive-through / launching habit',type:'diff'},{text:'Arm-wrap below the hips',type:'diff'}],
+   explanation:'Negative transfer. Defensive reading and positioning carry over, but the football tackle technique — shoulder lead, high contact, drive-through — is exactly what rugby rules prohibit. The automatized motor program must be actively unlearned, which takes longer than starting from scratch.'
   },
-  {
-    dir: '-',
-    scenario: 'A gamer who has played first-person shooters exclusively with an inverted Y-axis (push stick up → camera looks down) switches to a new game where invert is unavailable.',
-    question: 'Does inverted-axis expertise help or hurt when the control scheme can\'t be inverted?',
-    explanation: 'Negative transfer — and frustrating for exactly the reason the theory predicts. The motor program is so automatized that the player\'s thumbs do the opposite of what they consciously intend. The stronger the original habit, the longer the interference lasts. Many players report this never fully resolves without extensive retraining.'
+  {from:'Inverted Y-axis (gaming)',to:'Normal Y-axis (gaming)',dir:'-',
+   scenario:'A gamer who has always used an inverted Y-axis switches to a game where inverted controls are unavailable.',
+   question:'Does inverted-axis expertise help or hurt when the control scheme can\'t be inverted?',
+   elements:[
+     {text:'Game strategy & map awareness',type:'carry'},{text:'Horizontal aiming habits',type:'carry'},
+     {text:'Y-axis motor program',type:'diff'},{text:'Stick-to-screen spatial mapping',type:'diff'},
+     {text:'Vertical targeting under pressure',type:'diff'},{text:'Aiming precision instinct',type:'diff'}],
+   explanation:'Negative transfer. Strategy and horizontal control carry over, but the Y-axis motor program is so automatized that the player\'s thumbs do the opposite of their conscious intention. The stronger the original habit, the longer the interference persists.'
   },
-  {
-    dir: '±',
-    scenario: 'An acoustic guitarist begins playing electric guitar in a rock band.',
-    question: 'Does acoustic guitar expertise transfer to electric guitar?',
-    explanation: 'Mixed transfer. Chord shapes, music theory, fretting technique, and rhythm all transfer positively — a skilled acoustic player can produce music immediately. But electric-specific skills (amp settings, pickup selection, gain control, feedback management, lighter string action) require new learning, and the absence of acoustic resonance forces adjustments to attack and dynamics.'
+  {from:'Acoustic guitar',to:'Electric guitar',dir:'±',
+   scenario:'An acoustic guitarist begins playing electric guitar in a rock band.',
+   question:'Does acoustic guitar expertise transfer to electric guitar?',
+   elements:[
+     {text:'Chord shapes & fingering',type:'carry'},{text:'Music theory & rhythm',type:'carry'},
+     {text:'Fretting hand technique',type:'carry'},{text:'Attack pressure habits (dynamics)',type:'diff'},
+     {text:'Amp settings & gain control',type:'diff'},{text:'Feedback & sustain management',type:'diff'}],
+   explanation:'Mixed transfer. Chord shapes, music theory, and fretting technique carry directly — the guitarist makes music immediately. But acoustic dynamics (playing harder = louder) actively conflict with electric dynamics (volume is amp-controlled). Amp operation and feedback management are entirely new.'
   },
-  {
-    dir: '±',
-    scenario: 'A classically trained ballet dancer begins contemporary dance training.',
-    question: 'Does ballet expertise transfer to contemporary dance?',
-    explanation: 'Mixed transfer. Musicality, body awareness, spatial orientation, and core strength transfer positively. But contemporary dance deliberately deconstructs ballet posture — releasing turnout, embracing floor work, using weight and gravity rather than fighting them. The very things a trained ballet dancer does automatically (pulled-up posture, eternal turnout) are what contemporary training targets for unlearning.'
+  {from:'Classical ballet',to:'Contemporary dance',dir:'±',
+   scenario:'A classically trained ballet dancer begins contemporary dance training.',
+   question:'Does ballet expertise transfer to contemporary dance?',
+   elements:[
+     {text:'Musicality & rhythmic precision',type:'carry'},{text:'Body spatial awareness',type:'carry'},
+     {text:'Core strength & physical conditioning',type:'carry'},{text:'Pulled-up posture habit',type:'diff'},
+     {text:'Permanent turnout of feet',type:'diff'},{text:'Floor work & weight-into-ground',type:'diff'}],
+   explanation:'Mixed transfer. Musicality, body awareness, and core strength all carry over. But contemporary dance deliberately deconstructs ballet — releasing turnout, embracing floor work, using gravity rather than fighting it. The very things a ballet dancer does automatically are what contemporary training targets for unlearning.'
   },
-  {
-    dir: '±',
-    scenario: 'A competitive downhill skier begins learning to snowboard.',
-    question: 'Does downhill ski expertise transfer to snowboarding?',
-    explanation: 'Mixed transfer. Reading mountain terrain, understanding snow conditions, edge pressure, and speed management all transfer positively. But the body mechanics are fundamentally different: snowboarding requires a sideways stance and uses hip and shoulder rotation rather than parallel leg steering. Expert skiers often resist the necessary hip commitment because their ski habits are so ingrained.'
+  {from:'Downhill skiing',to:'Snowboarding',dir:'±',
+   scenario:'A competitive downhill skier begins learning to snowboard.',
+   question:'Does downhill ski expertise transfer to snowboarding?',
+   elements:[
+     {text:'Terrain & snow condition reading',type:'carry'},{text:'Edge pressure concept',type:'carry'},
+     {text:'Speed & slope management',type:'carry'},{text:'Parallel leg steering',type:'diff'},
+     {text:'Sideways stance & balance',type:'diff'},{text:'Hip rotation as primary steering',type:'diff'}],
+   explanation:'Mixed transfer. Reading terrain, edge pressure, and speed management are shared elements. But skiing\'s parallel leg steering directly conflicts with snowboarding\'s sideways stance and hip-rotation steering. Expert skiers often resist committing their hips because their ski habits fire first.'
   },
-  {
-    dir: '±',
-    scenario: 'A professional watercolor painter begins working in oil paint.',
-    question: 'Does watercolor expertise transfer to oil painting?',
-    explanation: 'Mixed transfer. Color theory, composition, observational skill, and brush handling all transfer. But watercolor is worked light-to-dark (you preserve the white of the paper) while oil painting is worked dark-to-light (you add highlights last). This fundamental workflow difference creates direct interference — watercolor painters often overcorrect and under-paint their oils.'
+  {from:'Watercolor painting',to:'Oil painting',dir:'±',
+   scenario:'A watercolor painter begins working in oil paint for the first time.',
+   question:'Does watercolor expertise transfer to oil painting?',
+   elements:[
+     {text:'Color theory & mixing',type:'carry'},{text:'Composition & design sense',type:'carry'},
+     {text:'Brush handling',type:'carry'},{text:'Light-to-dark workflow',type:'diff'},
+     {text:'Preserving white space habit',type:'diff'},{text:'Wet-on-wet layering technique',type:'diff'}],
+   explanation:'Mixed transfer. Color theory, composition, and brush handling are shared. But watercolor is worked light-to-dark — you preserve the white of the paper. Oil painting is worked dark-to-light — you add highlights last. This fundamental workflow difference creates direct interference, causing watercolor painters to underpaint their oils.'
   },
-  {
-    dir: '±',
-    scenario: 'An experienced soccer player begins playing Australian rules football (AFL) for the first time.',
-    question: 'Does soccer expertise transfer to Australian rules football?',
-    explanation: 'Mixed transfer. Field running, kicking instincts, spatial awareness, and reading opponents all transfer. But AFL involves hand-passing (punching the ball), marking (catching), and an oval ball — all new motor programs. Soccer players also carry the deep instinct that you cannot touch the ball with your hands, which interferes with the constant hand-use AFL requires.'
+  {from:'Soccer',to:'Australian rules football (AFL)',dir:'±',
+   scenario:'An experienced soccer player begins playing Australian rules football for the first time.',
+   question:'Does soccer expertise transfer to Australian rules football?',
+   elements:[
+     {text:'Field running & endurance',type:'carry'},{text:'Kicking instincts & timing',type:'carry'},
+     {text:'Reading opponents & space',type:'carry'},{text:'No-hands-on-ball instinct',type:'diff'},
+     {text:'Hand-passing (punching the ball)',type:'diff'},{text:'Oval ball handling & marking',type:'diff'}],
+   explanation:'Mixed transfer. Running, kicking, and spatial reading carry directly. But soccer builds a deep no-hands instinct that conflicts with AFL\'s constant hand use. The oval ball and catching (marking) are also entirely new motor programs that must be learned from scratch.'
   },
-  {
-    dir: '±',
-    scenario: 'A cellist begins learning to play bass guitar.',
-    question: 'Does cello expertise transfer to bass guitar?',
-    explanation: 'Mixed transfer. Low-register musical thinking, left-hand fingering logic, and ensemble listening all transfer positively. But cello is bowed (long sustained tones) while bass is plucked (percussive attack). Cello has no frets, requiring learned intonation — bass has frets, which helps pitch but changes what the left hand needs to do. The cellist must adapt from arco to pizzicato thinking throughout.'
+  {from:'Cello',to:'Bass guitar',dir:'±',
+   scenario:'A professional cellist begins learning to play bass guitar.',
+   question:'Does cello expertise transfer to bass guitar?',
+   elements:[
+     {text:'Low-register musical thinking',type:'carry'},{text:'Left-hand fingering logic',type:'carry'},
+     {text:'Ensemble listening & groove sense',type:'carry'},{text:'Bowing technique (arco)',type:'diff'},
+     {text:'Fretless intonation habit',type:'diff'},{text:'Percussive plucked attack',type:'diff'}],
+   explanation:'Mixed transfer. Low-register musicality, fingering logic, and ensemble listening carry directly. But cello is bowed and fretless — both habits must be set aside. The bass is fretted and plucked, requiring a completely different right-hand technique and a different relationship between the left hand and pitch.'
   },
-  {
-    dir: '±',
-    scenario: 'A software engineer fluent in C++ begins learning Rust.',
-    question: 'Does C++ expertise transfer to Rust?',
-    explanation: 'Mixed transfer. Programming logic, systems thinking, memory management concepts, and debugging strategies all transfer positively. But Rust\'s borrow checker and ownership model enforce memory safety in ways that directly conflict with C++ habits — pointer arithmetic, manual memory management, and mutable state patterns that work fine in C++ produce compiler errors in Rust. Many experienced C++ developers find this harder than novice programmers who have no conflicting habits.'
+  {from:'C++ programming',to:'Rust programming',dir:'±',
+   scenario:'A software engineer fluent in C++ begins learning Rust.',
+   question:'Does C++ expertise transfer to Rust?',
+   elements:[
+     {text:'Programming logic & problem decomposition',type:'carry'},{text:'Systems-level thinking',type:'carry'},
+     {text:'Debugging strategies',type:'carry'},{text:'Pointer arithmetic habits',type:'diff'},
+     {text:'Manual memory management patterns',type:'diff'},{text:'Mutable shared state patterns',type:'diff'}],
+   explanation:'Mixed transfer. Programming logic, systems thinking, and debugging carry directly. But Rust\'s borrow checker and ownership model enforce memory safety in ways that directly conflict with C++ habits — pointer arithmetic and mutable state patterns that work in C++ produce compiler errors in Rust. Many experienced C++ developers find Rust harder than novices with no conflicting habits.'
   },
-  {
-    dir: '0',
-    scenario: 'A concert pianist begins training in competitive table tennis.',
-    question: 'Does piano expertise transfer to table tennis?',
-    explanation: 'Near-zero transfer. Finger independence and fine motor precision at a keyboard share essentially no elements with the full-body reactive sport of table tennis, which demands explosive shoulder and arm rotation, footwork, spin reading, and split-second spatial prediction. The motor programs are so different they belong to entirely separate systems.'
+  {from:'Concert piano',to:'Competitive table tennis',dir:'0',
+   scenario:'A concert pianist begins training in competitive table tennis.',
+   question:'Does piano expertise transfer to table tennis?',
+   elements:[
+     {text:'Fine finger motor control',type:'carry'},{text:'Performance composure',type:'carry'},
+     {text:'Explosive full-arm & shoulder rotation',type:'diff'},{text:'Reactive footwork',type:'diff'},
+     {text:'Reading spin on a moving ball',type:'diff'},{text:'Split-second spatial prediction',type:'diff'}],
+   explanation:'Near-zero transfer. Fine motor control and composure exist in both, but they operate in completely different systems. Finger independence at a keyboard shares no motor programs with the full-body explosive reaction demands of table tennis. The two skills belong to entirely separate domains.'
   },
-  {
-    dir: '0',
-    scenario: 'A world-ranked competitive chess player begins learning to swim competitively.',
-    question: 'Does chess expertise transfer to competitive swimming?',
-    explanation: 'Near-zero transfer. Chess develops abstract spatial reasoning, forward planning, and pattern recognition under time pressure — none of which maps onto the physical, rhythmic, technique-driven demands of competitive swimming. Mental toughness and competition experience might offer a marginal psychological benefit, but the skills themselves share no identical elements.'
+  {from:'Competitive chess',to:'Competitive swimming',dir:'0',
+   scenario:'A world-ranked chess player begins training for competitive swimming.',
+   question:'Does chess expertise transfer to competitive swimming?',
+   elements:[
+     {text:'Strategic planning under pressure',type:'carry'},{text:'Mental focus & composure',type:'carry'},
+     {text:'Stroke technique',type:'diff'},{text:'Breath control & timing',type:'diff'},
+     {text:'Body position & drag reduction',type:'diff'},{text:'Flip turn & kick mechanics',type:'diff'}],
+   explanation:'Near-zero transfer. Mental focus and composure carry in a general sense, but they are marginal advantages compared to the entirely new physical skill set swimming requires. Chess strategy has no physical analog in freestyle technique — almost no identical elements.'
   },
-  {
-    dir: '0',
-    scenario: 'A master sommelier (professional wine expert) begins barista training.',
-    question: 'Does sommelier expertise transfer to coffee preparation?',
-    explanation: 'Near-zero transfer. Sensory attention transfers in a general way — both professions reward fine-grained taste and smell perception — but the actual skills are unrelated. Wine expertise involves fermentation, terroir, aging, and service; barista skill involves grind calibration, espresso extraction, milk texturing, and machine operation. The domains are superficially similar (both are beverages) but share very few identical elements.'
+  {from:'Master sommelier',to:'Specialty barista',dir:'0',
+   scenario:'A master sommelier begins barista training to work in a coffee shop.',
+   question:'Does sommelier expertise transfer to coffee preparation?',
+   elements:[
+     {text:'Fine sensory attention (taste & smell)',type:'carry'},{text:'Guest service & communication',type:'carry'},
+     {text:'Espresso grind calibration',type:'diff'},{text:'Extraction pressure & timing',type:'diff'},
+     {text:'Milk texturing & latte art',type:'diff'},{text:'Machine operation & maintenance',type:'diff'}],
+   explanation:'Near-zero transfer. Sensory attention and guest service carry in a general way, but the actual procedural skills — grind calibration, extraction, milk texturing, machine operation — share no identical elements with wine expertise. Both involve beverages, but the surface similarity conceals a near-complete absence of shared motor programs.'
   },
-  {
-    dir: '0',
-    scenario: 'A professional architect trained in hand drafting begins using AutoCAD for the first time.',
-    question: 'Does hand drafting expertise transfer to CAD software?',
-    explanation: 'Interesting case — near-zero motor transfer, but strong conceptual transfer. The spatial reasoning, building knowledge, and design intentions transfer completely. But the motor execution — pencil on paper, muscle memory for line weight, proprioceptive drawing — shares nothing with mouse-and-keyboard CAD operation. Architects often report that learning CAD feels like learning to draw from scratch, despite knowing exactly what they want to produce.'
+  {from:'Architectural hand drafting',to:'AutoCAD',dir:'0',
+   scenario:'An architect trained in hand drafting begins using AutoCAD software for the first time.',
+   question:'Does hand drafting expertise transfer to CAD software?',
+   elements:[
+     {text:'Spatial reasoning & design intent',type:'carry'},{text:'Building & construction knowledge',type:'carry'},
+     {text:'Pencil-on-paper motor memory',type:'diff'},{text:'Muscle memory for line weight',type:'diff'},
+     {text:'Mouse & keyboard operation',type:'diff'},{text:'Layer management & digital workflow',type:'diff'}],
+   explanation:'Near-zero motor transfer, but strong conceptual transfer. Spatial reasoning and building knowledge are fully identical elements. But the motor execution — pencil on paper, proprioceptive drawing — shares nothing with mouse-and-keyboard CAD. Architects often report learning CAD feels like learning to draw from scratch, despite knowing exactly what they want to produce.'
   },
-  {
-    dir: '0',
-    scenario: 'A professional opera singer begins learning to play competitive beach volleyball.',
-    question: 'Does operatic vocal training transfer to beach volleyball?',
-    explanation: 'Near-zero transfer. Opera develops diaphragmatic breath control, pitch memory, performance composure, and sustained physical endurance — none of which maps onto the jumping, diving, setting, and spiking demands of beach volleyball. Physical fitness provides a marginal benefit, but the trained skills are in completely different domains with no shared motor programs.'
-  },
+  {from:'Opera singing',to:'Competitive beach volleyball',dir:'0',
+   scenario:'A professional opera singer begins training in competitive beach volleyball.',
+   question:'Does operatic vocal training transfer to beach volleyball?',
+   elements:[
+     {text:'Diaphragmatic breath control',type:'carry'},{text:'Performance composure under pressure',type:'carry'},
+     {text:'Explosive jumping & blocking',type:'diff'},{text:'Diving & floor play',type:'diff'},
+     {text:'Setting & spiking technique',type:'diff'},{text:'Court positioning & reading play',type:'diff'}],
+   explanation:'Near-zero transfer. Breath control and composure exist in both, but they contribute negligibly to volleyball performance. The trained skills — vocal technique, pitch, resonance — share no identical elements with the physical, reactive demands of jumping, diving, and striking a ball.'
+  }
 ];
 
-// ---- State ----
-let queue = [];
-let current = 0;
-let score = 0;
-let answered = 0;
-let selected = null;
-let results = [];
-let reviewMode = false;
-let missedQueue = [];
+// ---- state ----
+let queue=[],current=0,score=0,results=[],selectedChip=null,dragChip=null,reviewMode=false;
 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+
+function startPractice(){
+  queue=shuffle(SCENARIOS);current=0;score=0;results=[];reviewMode=false;selectedChip=null;
+  show('screen-practice');hide('screen-intro');hide('screen-results');
+  loadQ();
+}
+function reviewMissed(){
+  const missed=results.filter(r=>!r.correct);
+  if(!missed.length)return;
+  queue=missed.map(r=>SCENARIOS.find(s=>s.scenario===r.scenario));
+  current=0;score=0;results=[];reviewMode=true;selectedChip=null;
+  show('screen-practice');hide('screen-results');
+  loadQ();
+}
+function restart(){hide('screen-results');show('screen-intro');}
+function show(id){document.getElementById(id).classList.add('active');}
+function hide(id){document.getElementById(id).classList.remove('active');}
+
+function loadQ(){
+  const q=queue[current];const total=queue.length;
+  document.getElementById('prog-fill').style.width=(current/total*100)+'%';
+  document.getElementById('prog-label').textContent=`${current+1} / ${total}`;
+  document.getElementById('score-pill').textContent=`${score} correct`;
+  document.getElementById('q-num').textContent=reviewMode?`Review — Scenario ${current+1}`:`Scenario ${current+1}`;
+  document.getElementById('skill-from').textContent=q.from;
+  document.getElementById('skill-to').textContent=q.to;
+  document.getElementById('q-scenario').textContent=q.scenario;
+  document.getElementById('q-question').textContent=q.question;
+  selectedChip=null;
+  document.getElementById('sort-feedback').style.display='none';
+  document.getElementById('sort-feedback').className='sort-feedback';
+  document.getElementById('stage-2').style.display='none';
+  document.getElementById('stage-1').style.display='block';
+  document.getElementById('check-btn').disabled=true;
+  document.getElementById('dir-feedback').style.display='none';
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('hint-strip').textContent='Tap a chip to select it, then tap a bucket to place it';
+  document.querySelectorAll('.dir-btn').forEach(b=>{b.className='dir-btn';b.disabled=false;});
+  const pool=document.getElementById('chip-pool');
+  pool.innerHTML='';
+  document.getElementById('chips-carry').innerHTML='';
+  document.getElementById('chips-diff').innerHTML='';
+  shuffle(q.elements).forEach(el=>pool.appendChild(makeChip(el.text,el.type)));
 }
 
-function startPractice() {
-  queue = shuffle(SCENARIOS);
-  current = 0; score = 0; answered = 0; selected = null; results = [];
-  reviewMode = false;
-  document.getElementById('screen-intro').style.display = 'none';
-  document.getElementById('screen-results').classList.remove('active');
-  document.getElementById('screen-practice').style.display = 'block';
-  loadQuestion();
+function makeChip(text,correctType){
+  const c=document.createElement('div');
+  c.className='chip';c.textContent=text;
+  c.dataset.correct=correctType;c.dataset.location='pool';
+  c.draggable=true;
+  c.addEventListener('dragstart',e=>{dragChip=c;c.classList.add('drag-ghost');e.dataTransfer.effectAllowed='move';});
+  c.addEventListener('dragend',()=>{c.classList.remove('drag-ghost');dragChip=null;});
+  c.addEventListener('click',onChipClick);
+  return c;
 }
 
-function restartPractice() {
-  document.getElementById('screen-results').classList.remove('active');
-  document.getElementById('screen-intro').style.display = 'block';
+function onChipClick(e){
+  const chip=e.currentTarget;
+  if(chip.classList.contains('ok-carry')||chip.classList.contains('ok-diff')||chip.classList.contains('wrong-chip'))return;
+  if(selectedChip===chip){chip.classList.remove('selected');selectedChip=null;return;}
+  if(selectedChip)selectedChip.classList.remove('selected');
+  selectedChip=chip;chip.classList.add('selected');
+  document.getElementById('hint-strip').textContent='Now tap a bucket below to place it';
 }
 
-function reviewMissed() {
-  const missed = results.filter(r => !r.correct);
-  if (!missed.length) return;
-  queue = missed.map(r => SCENARIOS.find(s => s.scenario === r.scenario));
-  current = 0; score = 0; answered = 0; selected = null; results = [];
-  reviewMode = true;
-  document.getElementById('screen-results').classList.remove('active');
-  document.getElementById('screen-practice').style.display = 'block';
-  loadQuestion();
+function onZoneClick(zone){
+  if(!selectedChip)return;
+  placeChip(selectedChip,zone);
+  selectedChip.classList.remove('selected');selectedChip=null;
+  document.getElementById('hint-strip').textContent='Tap a chip to select it, then tap a bucket to place it';
+  updateCheckBtn();
 }
 
-function loadQuestion() {
-  const q = queue[current];
-  const total = queue.length;
+function onDragOver(e,zone){e.preventDefault();document.getElementById('zone-'+zone).classList.add('drag-over');}
+function onDragOverPool(e){e.preventDefault();}
+function onDrop(e,zone){
+  e.preventDefault();
+  document.querySelectorAll('.zone').forEach(z=>z.classList.remove('drag-over'));
+  if(dragChip)placeChip(dragChip,zone);updateCheckBtn();
+}
+function onDropPool(e){
+  e.preventDefault();
+  if(dragChip)placeChip(dragChip,'pool');updateCheckBtn();
+}
 
-  // Progress
-  const pct = (current / total) * 100;
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-label').textContent = `${current + 1} / ${total}`;
-  document.getElementById('score-pill').textContent = `${score} correct`;
+function placeChip(chip,zone){
+  chip.dataset.location=zone;
+  if(zone==='pool')document.getElementById('chip-pool').appendChild(chip);
+  else if(zone==='carry')document.getElementById('chips-carry').appendChild(chip);
+  else document.getElementById('chips-diff').appendChild(chip);
+}
 
-  // Content
-  document.getElementById('q-num').textContent = reviewMode ? `Review — Scenario ${current + 1}` : `Scenario ${current + 1}`;
-  document.getElementById('q-scenario').textContent = q.scenario;
-  document.getElementById('q-question').textContent = q.question;
+function updateCheckBtn(){
+  const inPool=document.getElementById('chip-pool').querySelectorAll('.chip').length;
+  document.getElementById('check-btn').disabled=inPool>0;
+}
 
-  // Reset options
-  document.querySelectorAll('.opt-btn').forEach(btn => {
-    btn.className = 'opt-btn';
-    btn.disabled = false;
+function checkSort(){
+  const allChips=[...document.querySelectorAll('#chips-carry .chip, #chips-diff .chip')];
+  let correct=0;
+  allChips.forEach(chip=>{
+    const ok=(chip.dataset.correct===chip.dataset.location);
+    if(ok){correct++;chip.classList.add(chip.dataset.correct==='carry'?'ok-carry':'ok-diff');}
+    else chip.classList.add('wrong-chip');
+    chip.removeEventListener('click',onChipClick);
   });
-
-  // Reset feedback
-  const fb = document.getElementById('feedback-box');
-  fb.style.display = 'none';
-  fb.className = 'feedback-box';
-  document.getElementById('correct-answer-note').style.display = 'none';
-  document.getElementById('next-btn').style.display = 'none';
-
-  selected = null;
+  const total=allChips.length;const pct=correct/total;
+  const fb=document.getElementById('sort-feedback');fb.style.display='block';
+  let cls,head,body;
+  if(pct>=5/6){cls='good';head=`${correct} of ${total} correct.`;body='Your element sorting aligns well with Thorndike\'s analysis. Now predict the overall direction of transfer.';}
+  else if(pct>=3/6){cls='partial';head=`${correct} of ${total} correct.`;body='Review the crossed-out elements above. Think about whether each one runs in the same direction as the old skill, or a different one.';}
+  else{cls='poor';head=`${correct} of ${total} correct.`;body='Look at the crossed-out elements above. For each one: would someone with the old skill do it the same way in the new skill, or differently? That\'s the heart of Thorndike\'s identical elements theory.';}
+  fb.classList.add(cls);
+  document.getElementById('sf-head').textContent=head;
+  document.getElementById('sf-body').textContent=body;
+  document.getElementById('check-btn').disabled=true;
+  setTimeout(showStage2,1000);
 }
 
-function selectAnswer(dir) {
-  if (selected !== null) return;
-  selected = dir;
-  const q = queue[current];
-  const correct = dir === q.dir;
+function showStage2(){
+  const nCarry=document.querySelectorAll('#chips-carry .chip').length;
+  const nDiff=document.querySelectorAll('#chips-diff .chip').length;
+  document.getElementById('s2-carry').textContent=`${nCarry} element${nCarry!==1?'s':''} carry over`;
+  document.getElementById('s2-diff').textContent=`${nDiff} element${nDiff!==1?'s':''} new or conflict`;
+  document.getElementById('stage-2').style.display='block';
+  document.getElementById('stage-2').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
 
-  // Disable all buttons
-  document.querySelectorAll('.opt-btn').forEach(btn => {
-    btn.disabled = true;
-    const btnDir = btn.dataset.dir;
-    if (btnDir === q.dir && !correct) btn.classList.add('reveal-correct');
+const DIR_LABELS={'+':'Positive (+)','-':'Negative (−)','±':'Mixed (±)','0':'Near-zero (0)'};
+function selectDir(dir){
+  const q=queue[current];const correct=dir===q.dir;
+  document.querySelectorAll('.dir-btn').forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.dir===dir)b.classList.add(correct?'chosen-right':'chosen-wrong');
+    if(!correct&&b.dataset.dir===q.dir)b.classList.add('reveal-answer');
   });
-
-  // Style selected
-  const selectedBtn = document.querySelector(`.opt-btn[data-dir="${CSS.escape(dir)}"]`);
-  selectedBtn.classList.add(correct ? 'selected-correct' : 'selected-wrong');
-
-  // Feedback
-  const fb = document.getElementById('feedback-box');
-  fb.style.display = 'block';
-  fb.classList.add(correct ? 'correct' : 'wrong');
-
-  const verdict = document.getElementById('feedback-verdict');
-  verdict.className = 'feedback-verdict ' + (correct ? 'correct' : 'wrong');
-  verdict.textContent = correct ? '✓ Correct' : '✗ Not quite';
-
-  if (!correct) {
-    const dirLabels = { '+': 'Positive (+)', '-': 'Negative (−)', '±': 'Mixed (±)', '0': 'Near-zero (0)' };
-    const note = document.getElementById('correct-answer-note');
-    note.style.display = 'block';
-    note.textContent = `Correct answer: ${dirLabels[q.dir]}`;
-  }
-
-  document.getElementById('feedback-explanation').textContent = q.explanation;
-  document.getElementById('next-btn').style.display = 'inline-block';
-
-  // Record
-  if (correct) score++;
-  answered++;
-  results.push({ scenario: q.scenario, correct, chosen: dir, answer: q.dir });
+  const fb=document.getElementById('dir-feedback');fb.style.display='block';
+  fb.className='dir-feedback '+(correct?'correct':'wrong');
+  document.getElementById('df-verdict').textContent=correct?'✓ Correct':'✗ Not quite';
+  const note=document.getElementById('df-note');
+  if(!correct){note.style.display='block';note.textContent='Correct: '+DIR_LABELS[q.dir];}else note.style.display='none';
+  document.getElementById('df-expl').textContent=q.explanation;
+  document.getElementById('next-btn').style.display='inline-block';
+  if(correct)score++;
+  results.push({scenario:q.scenario,correct,chosen:dir,answer:q.dir});
+  document.getElementById('score-pill').textContent=`${score} correct`;
 }
 
-function nextQuestion() {
-  current++;
-  if (current >= queue.length) {
-    showResults();
-  } else {
-    loadQuestion();
-  }
-}
+function nextQuestion(){current++;if(current>=queue.length)showResults();else loadQ();}
+function skipQuestion(){results.push({scenario:queue[current].scenario,correct:false,chosen:null,answer:queue[current].dir});current++;if(current>=queue.length)showResults();else loadQ();}
 
-function skipQuestion() {
-  results.push({ scenario: queue[current].scenario, correct: false, chosen: null, answer: queue[current].dir });
-  answered++;
-  current++;
-  if (current >= queue.length) showResults();
-  else loadQuestion();
-}
-
-function showResults() {
-  document.getElementById('screen-practice').style.display = 'none';
-  const rs = document.getElementById('screen-results');
-  rs.classList.add('active');
-
-  const total = queue.length;
-  document.getElementById('final-score').textContent = `${score}/${total}`;
-  const pct = Math.round(score / total * 100);
-  let label = pct >= 80 ? 'Strong work — you have a solid grip on transfer specificity.'
-    : pct >= 60 ? 'Good progress. Review the mixed and near-zero cases.'
-    : 'Keep practicing. Focus on which elements actually carry over — and which don\'t.';
-  document.getElementById('final-label').textContent = label;
-
-  // Breakdown by type
-  const types = ['+', '-', '±', '0'];
-  const typeNames = { '+': 'Positive', '-': 'Negative', '±': 'Mixed', '0': 'Near-zero' };
-  const typeClass = { '+': 'pos', '-': 'neg', '±': 'mix', '0': 'zero' };
-  const typeSymbol = { '+': '+', '-': '−', '±': '±', '0': '0' };
-
-  let breakdownHtml = '';
-  types.forEach(t => {
-    const qs = queue.filter(q => q.dir === t);
-    const correct = results.filter(r => r.answer === t && r.correct).length;
-    breakdownHtml += `<div class="breakdown-cell ${typeClass[t]}">
-      <div class="b-sym">${typeSymbol[t]}</div>
-      <div class="b-label">${typeNames[t]}</div>
-      <div class="b-score">${correct}/${qs.length}</div>
-    </div>`;
-  });
-  document.getElementById('breakdown-grid').innerHTML = breakdownHtml;
-
-  // Missed questions
-  const missed = results.filter(r => !r.correct);
-  const dirLabels = { '+': 'Positive (+)', '-': 'Negative (−)', '±': 'Mixed (±)', '0': 'Near-zero (0)' };
-  const ms = document.getElementById('missed-section');
-  if (missed.length > 0) {
-    let html = `<div class="missed-header">Missed (${missed.length})</div>`;
-    missed.forEach(r => {
-      const chosen = r.chosen ? dirLabels[r.chosen] : 'Skipped';
-      html += `<div class="missed-item">${r.scenario.slice(0, 90)}... <br><span class="mi-correct">Correct: ${dirLabels[r.answer]}</span></div>`;
-    });
-    ms.innerHTML = html;
-    document.getElementById('review-btn').style.display = 'block';
-  } else {
-    ms.innerHTML = '<div class="missed-header" style="color:var(--pos);">All correct — perfect round!</div>';
-    document.getElementById('review-btn').style.display = 'none';
-  }
+function showResults(){
+  hide('screen-practice');show('screen-results');
+  const total=queue.length;const pct=Math.round(score/total*100);
+  document.getElementById('final-score').textContent=`${score}/${total}`;
+  document.getElementById('final-sub').textContent=pct>=80?'Strong — you have a solid grip on identical elements theory.':pct>=60?'Good progress. Review the mixed and near-zero cases.':'Keep practicing — focus on which elements actually carry over, and which don\'t.';
+  const types=['+','-','±','0'];const tn={'+':'Positive','-':'Negative','±':'Mixed','0':'Near-zero'};
+  const tc={'+':'pos','-':'neg','±':'mix','0':'zero'};const ts={'+':'+','-':'−','±':'±','0':'0'};
+  document.getElementById('breakdown').innerHTML=types.map(t=>{
+    const qs=queue.filter(q=>q.dir===t);const c=results.filter(r=>r.answer===t&&r.correct).length;
+    return`<div class="bd-cell ${tc[t]}"><div class="bd-sym">${ts[t]}</div><div class="bd-label">${tn[t]}</div><div class="bd-score">${c}/${qs.length}</div></div>`;
+  }).join('');
+  const missed=results.filter(r=>!r.correct);
+  document.getElementById('missed-head').textContent=missed.length?`Missed (${missed.length})`:'';
+  document.getElementById('missed-list').innerHTML=missed.length?missed.map(r=>`<div class="missed-item">${r.scenario.slice(0,85)}...<br><span class="mc">Answer: ${DIR_LABELS[r.answer]}</span></div>`).join(''):'<div style="color:var(--pos);font-size:13px;font-weight:600;padding:6px 0;">All correct — perfect round!</div>';
+  document.getElementById('review-btn').style.display=missed.length?'block':'none';
 }
 </script>
 </body>
