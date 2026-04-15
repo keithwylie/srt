@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wisconsin Card Sorting Task</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0c0f1a;
+      --surface:  #141927;
+      --surface2: #1c2238;
+      --border:   #262d47;
+      --text:     #dde2f0;
+      --muted:    #505878;
+      --c-red:    #e8514b;
+      --c-green:  #42c98a;
+      --c-yellow: #f5c840;
+      --c-blue:   #4b8ff5;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px 40px;
+    }
+
+    /* ── HEADER ──────────────────────────────── */
+    .header {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .wordmark {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      line-height: 1.2;
+    }
+
+    .wordmark span {
+      display: block;
+      font-size: 13px;
+      color: var(--text);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── STATS BAR ───────────────────────────── */
+    .stats {
+      display: flex;
+      gap: 6px;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      text-align: center;
+      min-width: 72px;
+    }
+
+    .stat-val {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── PROGRESS ────────────────────────────── */
+    .progress-wrap {
+      width: 100%;
+      max-width: 860px;
+      margin-bottom: 20px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .progress-track {
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--c-blue);
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+
+    /* ── STREAK DOTS ─────────────────────────── */
+    .streak-dots {
+      display: flex;
+      gap: 5px;
+      margin-top: 10px;
+      justify-content: flex-end;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.25s;
+    }
+
+    .dot.on { background: var(--c-green); }
+
+    /* ── SECTION LABEL ───────────────────────── */
+    .section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── KEY CARDS ───────────────────────────── */
+    .key-section {
+      width: 100%;
+      max-width: 860px;
+      margin-bottom: 6px;
+    }
+
+    .key-row {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+    }
+
+    /* ── CARDS ───────────────────────────────── */
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 3px solid transparent;
+      transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+      user-select: none;
+    }
+
+    .card.key {
+      width: 116px;
+      height: 154px;
+      cursor: pointer;
+    }
+
+    .card.key:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+    }
+
+    .card.key:active {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    }
+
+    .card.test {
+      width: 172px;
+      height: 228px;
+      cursor: default;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .card.selected-correct { border-color: var(--c-green) !important; }
+    .card.selected-wrong   { border-color: var(--c-red)   !important; }
+    .card.selected-persev  { border-color: var(--c-yellow) !important; }
+
+    .card-shapes {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      gap: 5px;
+    }
+
+    /* ── DIVIDER ─────────────────────────────── */
+    .divider {
+      width: 100%;
+      max-width: 860px;
+      height: 1px;
+      background: var(--border);
+      margin: 18px 0;
+    }
+
+    /* ── TEST AREA ───────────────────────────── */
+    .test-area {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      min-height: 270px;
+      justify-content: center;
+    }
+
+    /* ── FEEDBACK BANNER ─────────────────────── */
+    .feedback-banner {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.85);
+      padding: 18px 52px;
+      border-radius: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: #fff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 200;
+      text-align: center;
+      transition: opacity 0.15s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background: var(--c-green);
+    }
+
+    .feedback-banner.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .feedback-banner.wrong  { background: var(--c-red);    }
+    .feedback-banner.persev { background: #c47e18; }
+
+    .feedback-sub {
+      display: block;
+      font-size: 12px;
+      font-weight: 400;
+      margin-top: 6px;
+      opacity: 0.9;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+
+
+    /* ── INSTRUCTOR BAR ──────────────────────── */
+    .instructor-bar {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .rule-pill {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 6px;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .rule-pill.visible { opacity: 1; }
+    .rule-pill strong  { color: var(--text); }
+
+    .btn-group { display: flex; gap: 8px; }
+
+    .btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn:hover { background: var(--border); }
+
+    /* ── INTRO SCREEN ────────────────────────── */
+    .screen-intro {
+      max-width: 540px;
+      width: 100%;
+      text-align: center;
+      margin-top: 60px;
+      animation: fadein 0.4s ease;
+    }
+
+    .screen-intro h1 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      color: var(--text);
+    }
+
+    .intro-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      text-align: left;
+      margin-bottom: 28px;
+    }
+
+    .intro-card p {
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--muted);
+    }
+
+    .intro-card p + p { margin-top: 12px; }
+
+    .intro-card strong { color: var(--text); }
+
+    .start-btn {
+      background: var(--c-blue);
+      border: none;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 14px 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      letter-spacing: 0.02em;
+    }
+
+    .start-btn:hover  { opacity: 0.88; }
+    .start-btn:active { transform: scale(0.98); }
+
+    /* ── COMPLETE SCREEN ─────────────────────── */
+    .screen-complete {
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      margin-top: 60px;
+      animation: fadein 0.4s ease;
+    }
+
+    .screen-complete h2 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 16px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 32px;
+      text-align: left;
+    }
+
+    .result-tile {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .result-tile .rv {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 38px;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .result-tile .rl {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* ── RT SECTION ──────────────────────────── */
+    .rt-section {
+      width: 100%;
+      margin-top: 32px;
+      text-align: left;
+    }
+
+    .rt-section-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .rt-section-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .rt-overall {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .rt-overall-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .rt-overall-val {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .switch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .switch-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .switch-meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .switch-rule-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    .switch-rule-label .arrow {
+      color: var(--muted);
+      font-weight: 300;
+      margin: 0 4px;
+    }
+
+    .rt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .rt-row-label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .rt-row-val {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .rt-cost-row {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .rt-cost-label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .rt-cost-val {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .cost-up   { color: #c47e18; }
+    .cost-down { color: var(--c-green); }
+    .cost-zero { color: var(--muted); }
+
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<div class="feedback-banner" id="feedbackBanner"></div>
+
+
+<script>
+// ─────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────
+
+const KEY_CARDS = [
+  { color: 'red',    shape: 'circle',   number: 1 },
+  { color: 'green',  shape: 'triangle', number: 2 },
+  { color: 'yellow', shape: 'square',   number: 3 },
+  { color: 'blue',   shape: 'star',     number: 4 },
+];
+
+const COLORS = {
+  red:    '#e8514b',
+  green:  '#42c98a',
+  yellow: '#f5c840',
+  blue:   '#4b8ff5',
+};
+
+const RULES       = ['color', 'shape', 'number'];
+const RULE_NAMES  = { color: 'Color', shape: 'Shape', number: 'Number' };
+const CRITERION   = 6;   // consecutive correct to complete a category
+const MAX_CATS    = 6;   // total categories before task ends
+
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+
+let S = makeState();
+
+function makeState() {
+  return {
+    phase:          'intro',   // intro | playing | feedback | complete
+    ruleIdx:        0,
+    prevRuleIdx:    null,
+    streak:         0,
+    catsCompleted:  0,
+    trials:         0,
+    correct:        0,
+    errors:         0,
+    persev:         0,
+    testCard:       null,
+    showRule:       false,
+    trialLog:       [],        // { rt, catIdx, correct, persev }
+    trialStartTime: null,
+  };
+}
+
+// ─────────────────────────────────────────────
+// SVG Shape Generation
+// ─────────────────────────────────────────────
+
+function starPoints(cx, cy, R, r) {
+  return Array.from({ length: 10 }, (_, i) => {
+    const a = (i * 36 - 90) * Math.PI / 180;
+    const radius = i % 2 === 0 ? R : r;
+    return `${(cx + radius * Math.cos(a)).toFixed(2)},${(cy + radius * Math.sin(a)).toFixed(2)}`;
+  }).join(' ');
+}
+
+function shapeSVG(shape, color, sz) {
+  const c  = COLORS[color];
+  const m  = sz / 2;
+  const p  = sz * 0.1;
+  const r  = m - p;
+
+  switch (shape) {
+    case 'circle':
+      return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}">
+        <circle cx="${m}" cy="${m}" r="${r}" fill="${c}"/>
+      </svg>`;
+
+    case 'triangle':
+      return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}">
+        <polygon points="${m},${p+1} ${sz-p},${sz-p} ${p},${sz-p}" fill="${c}"/>
+      </svg>`;
+
+    case 'square':
+      return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}">
+        <rect x="${p}" y="${p}" width="${sz-2*p}" height="${sz-2*p}" rx="2" fill="${c}"/>
+      </svg>`;
+
+    case 'star':
+      return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}">
+        <polygon points="${starPoints(m, m, r, r * 0.42)}" fill="${c}"/>
+      </svg>`;
+
+    default: return '';
+  }
+}
+
+// ─────────────────────────────────────────────
+// Card HTML Builder
+// ─────────────────────────────────────────────
+
+function cardHTML(card, type, keyIdx = null) {
+  const sz      = type === 'test' ? 44 : 29;
+  const gap     = type === 'test' ? 8 : 5;
+  const shapes  = Array(card.number).fill(null)
+    .map(() => shapeSVG(card.shape, card.color, sz)).join('');
+  const click   = keyIdx !== null ? `onclick="handleSort(${keyIdx})"` : '';
+
+  return `
+    <div class="card ${type}" ${click}>
+      <div class="card-shapes" style="gap:${gap}px">${shapes}</div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+// Game Logic
+// ─────────────────────────────────────────────
+
+function randCard() {
+  const colors  = ['red', 'green', 'yellow', 'blue'];
+  const shapes  = ['circle', 'triangle', 'square', 'star'];
+  return {
+    color:  colors[Math.floor(Math.random() * 4)],
+    shape:  shapes[Math.floor(Math.random() * 4)],
+    number: Math.floor(Math.random() * 4) + 1,
+  };
+}
+
+function matchesRule(keyIdx, card, ruleIdx) {
+  return KEY_CARDS[keyIdx][RULES[ruleIdx]] === card[RULES[ruleIdx]];
+}
+
+function handleSort(keyIdx) {
+  if (S.phase !== 'playing') return;
+
+  const rt        = S.trialStartTime ? Math.round(performance.now() - S.trialStartTime) : null;
+  const catIdx    = S.catsCompleted;   // capture before possible increment
+  const correct   = matchesRule(keyIdx, S.testCard, S.ruleIdx);
+  const persev    = !correct && S.prevRuleIdx !== null &&
+                    matchesRule(keyIdx, S.testCard, S.prevRuleIdx);
+
+  S.trials++;
+  S.phase = 'feedback';
+
+  let catJustCompleted = false;
+
+  if (correct) {
+    S.correct++;
+    S.streak++;
+    if (S.streak >= CRITERION) {
+      S.catsCompleted++;
+      S.prevRuleIdx  = S.ruleIdx;
+      S.ruleIdx      = (S.ruleIdx + 1) % RULES.length;
+      S.streak       = 0;
+      catJustCompleted = true;
+    }
+  } else {
+    S.errors++;
+    if (persev) S.persev++;
+    S.streak = 0;
+  }
+
+  S.trialLog.push({ rt, catIdx, correct, persev });
+
+  render();
+  showFeedback(correct, persev);
+
+
+  if (S.catsCompleted >= MAX_CATS) {
+    setTimeout(() => { S.phase = 'complete'; render(); }, 1600);
+    return;
+  }
+
+  setTimeout(() => {
+    S.testCard      = randCard();
+    S.trialStartTime = performance.now();
+    S.phase         = 'playing';
+    render();
+  }, 1450);
+}
+
+function startGame() {
+  S               = makeState();
+  S.phase         = 'playing';
+  S.testCard      = randCard();
+  S.trialStartTime = performance.now();
+  render();
+}
+
+function resetGame() {
+  S = makeState();
+  render();
+}
+
+function toggleRule() {
+  S.showRule = !S.showRule;
+  const el = document.querySelector('.rule-pill');
+  if (el) el.classList.toggle('visible', S.showRule);
+}
+
+// ─────────────────────────────────────────────
+// Feedback Animations
+// ─────────────────────────────────────────────
+
+let fbTimer;
+
+function showFeedback(correct, persev) {
+  const el = document.getElementById('feedbackBanner');
+  el.className = 'feedback-banner';
+
+  if (correct) {
+    el.innerHTML = '✓ &nbsp;CORRECT';
+  } else if (persev) {
+    el.innerHTML = '✗ &nbsp;WRONG<span class="feedback-sub">Perseverative Error</span>';
+    el.classList.add('persev');
+  } else {
+    el.innerHTML = '✗ &nbsp;WRONG';
+    el.classList.add('wrong');
+  }
+
+  el.classList.add('show');
+  clearTimeout(fbTimer);
+  fbTimer = setTimeout(() => el.classList.remove('show'), 1100);
+}
+
+
+
+// ─────────────────────────────────────────────
+// Render
+// ─────────────────────────────────────────────
+
+function render() {
+  const app = document.getElementById('app');
+
+  if (S.phase === 'intro')    { app.innerHTML = introHTML();    return; }
+  if (S.phase === 'complete') { app.innerHTML = completeHTML(); return; }
+
+  const pct   = (S.catsCompleted / MAX_CATS * 100).toFixed(0);
+  const rule  = RULES[S.ruleIdx];
+  const dots  = Array.from({ length: CRITERION }, (_, i) =>
+    `<div class="dot ${i < S.streak ? 'on' : ''}"></div>`).join('');
+
+  app.innerHTML = `
+    <div class="header">
+      <div class="wordmark">
+        Learning &amp; Memory Lab
+        <span>Wisconsin Card Sorting Task</span>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-val">${S.trials}</div>
+          <div class="stat-label">Trials</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" style="color:var(--c-green)">${S.correct}</div>
+          <div class="stat-label">Correct</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" style="color:var(--c-red)">${S.errors}</div>
+          <div class="stat-label">Errors</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" style="color:#c47e18">${S.persev}</div>
+          <div class="stat-label">Persev.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span>Categories Completed: ${S.catsCompleted} / ${MAX_CATS}</span>
+        <span>Correct Streak: ${S.streak} / ${CRITERION}</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="streak-dots">${dots}</div>
+    </div>
+
+    <div class="key-section">
+      <div class="section-label">Reference Cards — click to sort the test card</div>
+      <div class="key-row">
+        ${KEY_CARDS.map((kc, i) => cardHTML(kc, 'key', i)).join('')}
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="test-area">
+      <div class="section-label">Test Card</div>
+      ${S.testCard ? cardHTML(S.testCard, 'test') : ''}
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="instructor-bar">
+      <div class="rule-pill ${S.showRule ? 'visible' : ''}">
+        Current Rule: <strong>${RULE_NAMES[rule]}</strong>
+        &nbsp;|&nbsp;
+        Prev: <strong>${S.prevRuleIdx !== null ? RULE_NAMES[RULES[S.prevRuleIdx]] : '—'}</strong>
+      </div>
+      <div class="btn-group">
+        <button class="btn" onclick="toggleRule()">Instructor View &nbsp;[I]</button>
+        <button class="btn" onclick="resetGame()">Reset</button>
+      </div>
+    </div>
+  `;
+}
+
+function introHTML() {
+  // Show the 4 key cards as a preview
+  const preview = KEY_CARDS.map(kc => cardHTML(kc, 'key')).join('');
+
+  return `
+    <div class="screen-intro">
+      <h1>Wisconsin Card Sorting Task</h1>
+
+      <div class="intro-card">
+        <p>These four <strong>Reference Cards</strong> will appear across the top throughout the task:</p>
+      </div>
+
+      <div style="display:flex;gap:14px;justify-content:center;margin-bottom:28px">
+        ${preview}
+      </div>
+
+      <div class="intro-card">
+        <p>A <strong>Test Card</strong> will appear in the center. Click the Reference Card you think it should be sorted with.</p>
+        <p>You will be told <strong>Correct</strong> or <strong>Wrong</strong> after each sort.</p>
+        <p>The sorting rule — color, shape, or number — will <strong>change without warning</strong> after you get it right several times in a row. Your job is to figure it out and adapt.</p>
+      </div>
+
+      <button class="start-btn" onclick="startGame()">Begin Task</button>
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+// RT Analysis
+// ─────────────────────────────────────────────
+
+function avg(arr) {
+  return arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+}
+
+function computeRTSwitches() {
+  // For each switch (cat i → cat i+1), compare:
+  //   pre:  avg RT of last 3 trials in cat i
+  //   post: avg RT of first 3 trials in cat i+1
+  const switches = [];
+  for (let i = 0; i < MAX_CATS - 1; i++) {
+    const preTrials  = S.trialLog.filter(t => t.catIdx === i     && t.rt !== null);
+    const postTrials = S.trialLog.filter(t => t.catIdx === i + 1 && t.rt !== null);
+    const preAvg     = avg(preTrials.slice(-3).map(t => t.rt));
+    const postAvg    = avg(postTrials.slice(0, 3).map(t => t.rt));
+    switches.push({
+      from:    RULE_NAMES[RULES[i % RULES.length]],
+      to:      RULE_NAMES[RULES[(i + 1) % RULES.length]],
+      preAvg,
+      postAvg,
+      cost:    preAvg !== null && postAvg !== null ? postAvg - preAvg : null,
+    });
+  }
+  return switches;
+}
+
+function fmtMs(ms) {
+  return ms !== null ? ms.toLocaleString() + ' ms' : '—';
+}
+
+function completeHTML() {
+  const acc        = S.trials > 0 ? ((S.correct / S.trials) * 100).toFixed(1) : '0.0';
+  const persevPct  = S.errors > 0 ? ((S.persev / S.errors) * 100).toFixed(0) : 0;
+  const allRTs     = S.trialLog.map(t => t.rt).filter(r => r !== null);
+  const overallAvg = avg(allRTs);
+  const switches   = computeRTSwitches();
+
+  const switchCards = switches.map((sw, i) => {
+    let costHTML = '';
+    if (sw.cost !== null) {
+      const cls   = sw.cost > 0 ? 'cost-up' : sw.cost < 0 ? 'cost-down' : 'cost-zero';
+      const sign  = sw.cost > 0 ? '+' : '';
+      costHTML = `
+        <div class="rt-cost-row">
+          <span class="rt-cost-label">Switch cost</span>
+          <span class="rt-cost-val ${cls}">${sign}${sw.cost.toLocaleString()} ms</span>
+        </div>`;
+    }
+    return `
+      <div class="switch-card">
+        <div class="switch-meta">Switch ${i + 1}</div>
+        <div class="switch-rule-label">
+          ${sw.from}<span class="arrow">→</span>${sw.to}
+        </div>
+        <div class="rt-row">
+          <span class="rt-row-label">Pre-switch avg (last 3)</span>
+          <span class="rt-row-val">${fmtMs(sw.preAvg)}</span>
+        </div>
+        <div class="rt-row">
+          <span class="rt-row-label">Post-switch avg (first 3)</span>
+          <span class="rt-row-val">${fmtMs(sw.postAvg)}</span>
+        </div>
+        ${costHTML}
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="screen-complete">
+      <h2>Task Complete</h2>
+      <div class="results-grid">
+        <div class="result-tile">
+          <div class="rv">${S.trials}</div>
+          <div class="rl">Total Trials</div>
+        </div>
+        <div class="result-tile">
+          <div class="rv" style="color:var(--c-green)">${acc}%</div>
+          <div class="rl">Accuracy</div>
+        </div>
+        <div class="result-tile">
+          <div class="rv" style="color:var(--c-red)">${S.errors}</div>
+          <div class="rl">Total Errors</div>
+        </div>
+        <div class="result-tile">
+          <div class="rv" style="color:#c47e18">${S.persev}</div>
+          <div class="rl">Perseverative Errors<br>
+            <span style="font-size:10px;font-weight:400;color:var(--muted)">${persevPct}% of all errors</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rt-section">
+        <div class="rt-section-title">Response Time at Rule Switches</div>
+        <div class="rt-section-sub">
+          Compares your average response time just before vs. just after each hidden rule change.
+          A spike in response time reveals the cost of your prefrontal cortex inhibiting the old rule and updating to the new one — even when you don't make errors.
+        </div>
+        <div class="rt-overall">
+          <span class="rt-overall-label">Overall average response time</span>
+          <span class="rt-overall-val">${fmtMs(overallAvg)}</span>
+        </div>
+        <div class="switch-grid">
+          ${switchCards}
+        </div>
+      </div>
+
+      <div style="margin-top:32px">
+        <button class="btn" style="font-size:15px;padding:12px 32px" onclick="resetGame()">Play Again</button>
+      </div>
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+// Keyboard Shortcut
+// ─────────────────────────────────────────────
+
+document.addEventListener('keydown', e => {
+  if ((e.key === 'i' || e.key === 'I') && S.phase === 'playing') toggleRule();
+});
+
+// ─────────────────────────────────────────────
+// Boot
+// ─────────────────────────────────────────────
+
+render();
+</script>
+</body>
+</html>
